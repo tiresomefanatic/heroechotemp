@@ -1,21 +1,70 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   css: ["~/styles/main.css"],
-  modules: ["@nuxt/content"],
+  devtools: { enabled: true },
+  modules: ["@nuxt/content", "@nuxt/ui"],
+  
+  // Add runtime config for GitHub
+  runtimeConfig: {
+    github: {
+      clientId: process.env.NUXT_GITHUB_CLIENT_ID,
+      clientSecret: process.env.NUXT_GITHUB_CLIENT_SECRET,
+    },
+    public: {
+      githubClientId: process.env.NUXT_PUBLIC_GITHUB_CLIENT_ID,
+      siteUrl:
+        process.env.NODE_ENV === "production"
+          ? "https://tiresomefanatic.github.io/heroechotemp"
+          : "http://localhost:3000",
+    },
+  },
+
+  // Configure app for GitHub Pages
+  app: {
+    baseURL: process.env.NODE_ENV === "production" ? "/heroechotemp/" : "/",
+    buildAssetsDir: "assets",
+    head: {
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' }
+      ]
+    }
+  },
+
+  // Configure Nitro for GitHub Pages
+  nitro: {
+    preset: "github-pages",
+    prerender: {
+      failOnError: false,
+      crawlLinks: true,
+      routes: [
+        '/',
+        '/test'
+      ]
+    },
+    routeRules: {
+      "/api/**": {
+        cors: true,
+        headers: {
+          "access-control-allow-methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+        },
+      },
+    },
+  },
 
   content: {
     documentDriven: false,
     markdown: {
       anchorLinks: false,
       tags: {
-        p: 'p',
-        h1: 'h1',
-        h2: 'h2',
-        h3: 'h3',
-        h4: 'h4'
-      }
-    }
+        p: "p",
+        h1: "h1",
+        h2: "h2",
+        h3: "h3",
+        h4: "h4",
+      },
+    },
   },
 
-  compatibilityDate: '2025-01-02'
-})
+  compatibilityDate: "2025-01-02",
+});
