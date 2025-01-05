@@ -147,147 +147,21 @@ interface CommitInfo {
 
 export const useGithub = () => {
   const config = useRuntimeConfig();
-  const token = ref<string | null>(null);
-  const user = ref<GitHubUser | null>(null);
-  const loading = ref(false);
-
-  const createOctokitInstance = () => {
-    return new Octokit({
-      auth: token.value,
-    });
-  };
-
-  const getUser = async (): Promise<GitHubUser | null> => {
-    if (!token.value) {
-      const storedToken = localStorage.getItem("github_token");
-      if (storedToken) {
-        token.value = storedToken;
-      } else {
-        return null;
-      }
-    }
-
-    loading.value = true;
-    try {
-      const octokit = createOctokitInstance();
-      const { data } = await octokit.users.getAuthenticated();
-      user.value = data;
-      return data;
-    } catch (error) {
-      console.error("Error getting user:", error);
-      token.value = null;
-      localStorage.removeItem("github_token");
-      user.value = null;
-      return null;
-    } finally {
-      loading.value = false;
-    }
-  };
 
   const login = () => {
-    const authUrl = `https://github.com/login/oauth/authorize?` +
-      `client_id=${config.public.githubClientId}&` +
-      `scope=repo user&` +
-      `redirect_uri=${encodeURIComponent(`${config.public.siteUrl}/auth/callback`)}&` +
-      `allow_signup=true`;
-    
-    window.location.href = authUrl;
+    const params = new URLSearchParams({
+      client_id: config.public.githubClientId,
+      redirect_uri:
+        "https://tiresomefanatic.github.io/heroechotemp/auth/callback",
+      scope: "user repo",
+      response_type: "token",
+      allow_signup: "true",
+    });
+
+    window.location.href = `https://github.com/login/oauth/authorize?${params}`;
   };
-
-  const logout = () => {
-    token.value = null;
-    user.value = null;
-    localStorage.removeItem("github_token");
-    navigateTo("/");
-  };
-
-  const getFileContent = async (
-    path: string,
-    ref = "main"
-  ): Promise<string> => {
-    const octokit = createOctokitInstance();
-    try {
-      const response = await octokit.repos.getContent({
-        owner: "tiresomefanatic",
-        repo: "heroechotemp",
-        path,
-        ref,
-      });
-
-      if ("content" in response.data) {
-        return Buffer.from(response.data.content, "base64").toString();
-      }
-      throw new Error("Not a file");
-    } catch (error) {
-      console.error("Error getting file:", error);
-      throw error;
-    }
-  };
-
-  const saveFile = async (
-    path: string,
-    content: string | ArrayBuffer,
-    message: string,
-    branch = "main"
-  ): Promise<string> => {
-    const octokit = createOctokitInstance();
-    try {
-      let sha: string | undefined;
-      try {
-        const current = await octokit.repos.getContent({
-          owner: "tiresomefanatic",
-          repo: "heroechotemp",
-          path,
-          ref: branch,
-        });
-        if ("sha" in current.data) {
-          sha = current.data.sha;
-        }
-      } catch (error) {
-        // File doesn't exist yet, that's ok
-      }
-
-      let base64Content: string;
-      if (content instanceof ArrayBuffer) {
-        base64Content = Buffer.from(content).toString("base64");
-      } else {
-        base64Content = Buffer.from(content).toString("base64");
-      }
-
-      const response = await octokit.repos.createOrUpdateFileContents({
-        owner: "tiresomefanatic",
-        repo: "heroechotemp",
-        path,
-        message,
-        content: base64Content,
-        sha,
-        branch,
-      });
-
-      return response.data.content.download_url;
-    } catch (error) {
-      console.error("Error saving file:", error);
-      throw error;
-    }
-  };
-
-  // Initialize on mount
-  onMounted(async () => {
-    const storedToken = localStorage.getItem("github_token");
-    if (storedToken) {
-      token.value = storedToken;
-      await getUser();
-    }
-  });
 
   return {
-    user,
-    token,
-    loading,
     login,
-    logout,
-    getUser,
-    getFileContent,
-    saveFile,
   };
 };
