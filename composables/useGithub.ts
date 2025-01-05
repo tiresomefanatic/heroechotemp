@@ -151,17 +151,15 @@ export const useGithub = () => {
   const login = () => {
     const params = new URLSearchParams({
       client_id: config.public.githubClientId,
-      redirect_uri:
-        "https://tiresomefanatic.github.io/heroechotemp/auth/callback",
-      scope: "user repo",
-      response_type: "token",
-      allow_signup: "true",
+      redirect_uri: 'https://tiresomefanatic.github.io/heroechotemp/auth/callback',
+      scope: 'user repo',
+      allow_signup: 'true'
     });
 
     window.location.href = `https://github.com/login/oauth/authorize?${params}`;
   };
 
   return {
-    login,
+    login
   };
 };
