@@ -23,14 +23,17 @@ onMounted(async () => {
       return;
     }
 
-    // Exchange code for token using our server endpoint
-    const response = await fetch(config.app.baseURL + 'api/auth/token', {
+    // Exchange code for token directly with GitHub
+    const response = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
       headers: {
+        'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        code: code
+        client_id: config.public.githubClientId,
+        code: code,
+        // Note: client_secret is not included for security
       })
     });
 
@@ -49,8 +52,8 @@ onMounted(async () => {
       navigateTo('/', { replace: true });
     }
   } catch (err) {
-    error.value = err.message;
-    console.error('Auth error:', err);
+    console.error('Authentication error:', err);
+    error.value = 'Failed to authenticate with GitHub';
   }
 });
 </script>

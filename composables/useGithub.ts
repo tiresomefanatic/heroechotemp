@@ -188,7 +188,8 @@ export const useGithub = () => {
     const authUrl = `https://github.com/login/oauth/authorize?` +
       `client_id=${config.public.githubClientId}&` +
       `scope=repo user&` +
-      `redirect_uri=${encodeURIComponent(config.public.siteUrl + '/auth/callback')}`;
+      `redirect_uri=${encodeURIComponent(`${config.public.siteUrl}/auth/callback`)}&` +
+      `allow_signup=true`;
     
     window.location.href = authUrl;
   };
