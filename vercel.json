@@ -7,11 +7,19 @@
     }
   ],
   "buildCommand": "NITRO_PRESET=vercel nuxt build",
+  "devCommand": "nuxt dev",
+  "framework": "nuxt",
   "routes": [
     {
       "src": "/_nuxt/.*",
       "headers": {
         "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "src": "/api/.*",
+      "headers": {
+        "Cache-Control": "no-cache, no-store, must-revalidate"
       }
     },
     {
