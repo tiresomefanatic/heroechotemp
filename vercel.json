@@ -1,21 +1,13 @@
 {
   "version": 2,
-  "buildCommand": "NITRO_PRESET=vercel-edge npm run build",
+  "buildCommand": "NITRO_PRESET=vercel npm run build",
   "builds": [
     {
-      "src": "server/api/**/*.ts",
-      "use": "@vercel/node"
-    },
-    {
-      "src": ".output/**/*",
+      "src": "./.output/**",
       "use": "@vercel/static"
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/server/api/$1"
-    },
     {
       "src": "/(.*)",
       "dest": "/.output/public/$1"

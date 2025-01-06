@@ -32,7 +32,7 @@ export default defineNuxtConfig({
 
   // Configure Nitro for Vercel
   nitro: {
-    preset: "vercel-edge",
+    preset: "vercel",
     prerender: {
       failOnError: false,
       crawlLinks: true,

@@ -1,4 +1,4 @@
-import { defineEventHandler, readBody, createError } from "h3";
+import { defineEventHandler, readBody, createError, useRuntimeConfig } from "h3";
 
 interface TokenRequestBody {
   code: string;
@@ -13,64 +13,45 @@ interface GithubTokenResponse {
 }
 
 export default defineEventHandler(async (event) => {
+  const body = await readBody(event)
+  const config = useRuntimeConfig()
+
+  if (!body.code) {
+    throw createError({
+      statusCode: 400,
+      message: 'Authorization code is required'
+    })
+  }
+
   try {
-    const body = await readBody<TokenRequestBody>(event);
-
-    if (!body.code) {
-      throw createError({
-        statusCode: 400,
-        message: "Authorization code is required",
-      });
-    }
-
-    if (!process.env.NUXT_GITHUB_CLIENT_ID || !process.env.NUXT_GITHUB_CLIENT_SECRET) {
-      throw createError({
-        statusCode: 500,
-        message: "GitHub OAuth credentials are not configured",
-      });
-    }
-
-    const response = await fetch("https://github.com/login/oauth/access_token", {
-      method: "POST",
+    const response = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        client_id: process.env.NUXT_GITHUB_CLIENT_ID,
-        client_secret: process.env.NUXT_GITHUB_CLIENT_SECRET,
-        code: body.code,
-      }),
-    });
+        client_id: config.github.clientId,
+        client_secret: config.github.clientSecret,
+        code: body.code
+      })
+    })
 
-    const data = (await response.json()) as GithubTokenResponse;
+    const data = await response.json()
 
     if (data.error) {
       throw createError({
         statusCode: 400,
-        message: data.error_description || data.error,
-      });
+        message: data.error_description || data.error
+      })
     }
 
-    if (!data.access_token) {
-      throw createError({
-        statusCode: 400,
-        message: "No access token received from GitHub",
-      });
-    }
-
-    return {
-      access_token: data.access_token,
-      token_type: data.token_type,
-      scope: data.scope,
-    };
+    return data
   } catch (error: any) {
-    if (error.statusCode) {
-      throw error;
-    }
+    console.error('Token exchange error:', error)
     throw createError({
       statusCode: 500,
-      message: "Failed to exchange GitHub token",
-    });
+      message: error.message || 'Failed to exchange code for token'
+    })
   }
-});
+})
