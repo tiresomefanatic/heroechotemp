@@ -151,7 +151,7 @@ export const useGithub = () => {
   const login = () => {
     const params = new URLSearchParams({
       client_id: '4c1c42d1d9d1a5c0c887',
-      redirect_uri: 'https://tiresomefanatic.github.io/heroechotemp/auth/callback',
+      redirect_uri: 'https://tiresomefanatic.github.io/auth/callback',
       scope: 'user repo',
       response_type: 'token',
       allow_signup: 'true'
