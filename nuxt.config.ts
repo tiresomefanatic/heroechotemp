@@ -39,6 +39,9 @@ export default defineNuxtConfig({
       routes: [
         '/',
         '/test'
+      ],
+      ignore: [
+        '/api/**'
       ]
     },
     routeRules: {
@@ -46,7 +49,9 @@ export default defineNuxtConfig({
         cors: true,
         headers: {
           "access-control-allow-methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+          "access-control-allow-origin": "*"
         },
+        proxy: false
       },
     },
   },

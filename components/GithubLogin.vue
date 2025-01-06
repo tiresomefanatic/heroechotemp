@@ -20,31 +20,34 @@
       <div class="text-green-600 mb-4">
         Successfully authenticated with GitHub!
       </div>
-      <UButton
-        @click="logout"
-        color="gray"
-        variant="soft"
-      >
-        Logout
-      </UButton>
+      <UButton @click="logout" color="gray" variant="soft"> Logout </UButton>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-const route = useRoute()
-const { isAuthenticated, error, loading, initiateLogin, handleCallback, logout } = useGithubAuth()
+import { useGithubAuth } from "~/composables/useGithubAuth";
+
+const route = useRoute();
+const {
+  isAuthenticated,
+  error,
+  loading,
+  initiateLogin,
+  handleCallback,
+  logout,
+} = useGithubAuth();
 
 // Handle OAuth callback
 onMounted(() => {
-  const code = route.query.code as string
-  const state = route.query.state as string
-  
+  const code = route.query.code as string;
+  const state = route.query.state as string;
+
   if (code && state) {
-    handleCallback(code, state)
-    
+    handleCallback(code, state);
+
     // Clean up URL
-    navigateTo('/', { replace: true })
+    navigateTo("/", { replace: true });
   }
-})
+});
 </script>

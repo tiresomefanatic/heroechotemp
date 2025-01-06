@@ -1,4 +1,5 @@
-import { defineEventHandler, readBody, createError, useRuntimeConfig } from "h3";
+import { defineEventHandler, readBody, createError } from "h3";
+import { useRuntimeConfig } from "#imports";
 
 interface TokenRequestBody {
   code: string;

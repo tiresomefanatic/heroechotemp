@@ -37,7 +37,8 @@ export const useGithubAuth = () => {
     error.value = null
 
     try {
-      const response = await $fetch('/api/auth/token', {
+      const config = useRuntimeConfig()
+      const response = await $fetch(`${config.public.siteUrl}/api/auth/token`, {
         method: 'POST',
         body: { code }
       })
