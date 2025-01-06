@@ -18,10 +18,8 @@ export default defineNuxtConfig({
     },
   },
 
-  // Configure app for GitHub Pages
+  // Configure app
   app: {
-    baseURL: process.env.NODE_ENV === "production" ? "/heroechotemp/" : "/",
-    buildAssetsDir: "assets",
     head: {
       meta: [
         { charset: 'utf-8' },
