@@ -14,26 +14,38 @@
 <script setup>
 const route = useRoute();
 const error = ref(null);
-const debugInfo = ref('');
+const debugInfo = ref("");
 
-onMounted(() => {
+onMounted(async () => {
   try {
-    // Get token from URL fragment
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    const accessToken = params.get('access_token');
-    
-    debugInfo.value = `Hash: ${hash}, Params: ${JSON.stringify(Object.fromEntries(params.entries()))}`;
+    // Get authorization code from URL query parameters
+    const code = route.query.code;
+    debugInfo.value = `Code: ${code}`;
 
-    if (accessToken) {
-      localStorage.setItem('github_token', accessToken);
-      navigateTo('/', { replace: true });
+    if (code) {
+      // Exchange the code for an access token using our API route
+      const response = await fetch('/api/auth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to exchange code for token');
+      }
+
+      const data = await response.json();
+      localStorage.setItem("github_token", data.access_token);
+      navigateTo("/", { replace: true });
     } else {
-      error.value = 'No access token received';
+      error.value = "No authorization code found in URL";
     }
   } catch (err) {
-    console.error('Authentication error:', err);
-    error.value = 'Failed to authenticate with GitHub';
+    console.error("Authentication error:", err);
+    error.value = "Failed to authenticate with GitHub";
     debugInfo.value = `Error: ${err.message}`;
   }
 });
