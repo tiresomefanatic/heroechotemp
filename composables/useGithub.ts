@@ -22,7 +22,7 @@ export const useGithub = () => {
       client_id: '4c1c42d1d9d1a5c0c887',
       redirect_uri: 'https://tiresomefanatic.github.io/heroechotemp/auth/callback',
       scope: 'user repo',
-      response_type: 'token',
+      response_type: 'code',
       allow_signup: 'true'
     });
 
