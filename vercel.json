@@ -6,9 +6,10 @@
       "use": "@vercel/node"
     }
   ],
-  "buildCommand": "NITRO_PRESET=vercel nuxt build",
-  "devCommand": "nuxt dev",
   "framework": "nuxt",
+  "buildCommand": "nuxt build",
+  "devCommand": "nuxt dev",
+  "installCommand": "npm install",
   "routes": [
     {
       "src": "/_nuxt/.*",
