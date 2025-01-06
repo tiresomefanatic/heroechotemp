@@ -1,24 +1,22 @@
 {
   "version": 2,
-  "buildCommand": "NITRO_PRESET=vercel npm run build",
   "builds": [
     {
-      "src": ".vercel/output/functions/__nitro.func/**",
+      "src": "nuxt.config.ts",
       "use": "@vercel/node"
     }
   ],
+  "buildCommand": "NITRO_PRESET=vercel nuxt build",
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/__nitro"
+      "src": "/_nuxt/.*",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
     },
     {
-      "src": "/_nuxt/(.*)",
-      "dest": "/__nitro"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/__nitro"
+      "src": "/.*",
+      "dest": "/"
     }
   ]
 }
