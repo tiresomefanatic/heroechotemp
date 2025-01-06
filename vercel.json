@@ -1,9 +1,20 @@
 {
   "version": 2,
-  "framework": "nuxt",
   "buildCommand": "NITRO_PRESET=vercel npm run build",
-  "ignoreCommand": "!.output",
-  "outputDirectory": ".output/public",
-  "devCommand": "npm run dev",
-  "public": true
+  "builds": [
+    {
+      "src": "./.output/server/index.mjs",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/.output/server/index.mjs"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/.output/server/index.mjs"
+    }
+  ]
 }
