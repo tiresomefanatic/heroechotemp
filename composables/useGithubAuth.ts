@@ -7,13 +7,15 @@ export const useGithubAuth = () => {
   const loading = ref(false)
 
   const initiateLogin = () => {
+    if (!process.client) return
+
     const clientId = useRuntimeConfig().public.githubClientId
     if (!clientId) {
       error.value = 'GitHub client ID is not configured'
       return
     }
 
-    const redirectUri = window.location.origin
+    const redirectUri = `${window.location.origin}/auth/callback`
     const scope = 'read:user user:email'
     const state = Math.random().toString(36).substring(7)
 
@@ -25,6 +27,8 @@ export const useGithubAuth = () => {
   }
 
   const handleCallback = async (code: string, state: string) => {
+    if (!process.client) return
+
     const savedState = localStorage.getItem('github_oauth_state')
     localStorage.removeItem('github_oauth_state')
 
@@ -62,6 +66,8 @@ export const useGithubAuth = () => {
   }
 
   const logout = () => {
+    if (!process.client) return
+    
     accessToken.value = null
     isAuthenticated.value = false
     localStorage.removeItem('github_access_token')
@@ -69,6 +75,8 @@ export const useGithubAuth = () => {
 
   // Check for existing token on init
   const initialize = () => {
+    if (!process.client) return
+    
     const token = localStorage.getItem('github_access_token')
     if (token) {
       accessToken.value = token
@@ -76,7 +84,7 @@ export const useGithubAuth = () => {
     }
   }
 
-  // Run initialization
+  // Initialize on composable creation
   initialize()
 
   return {
@@ -86,6 +94,7 @@ export const useGithubAuth = () => {
     loading,
     initiateLogin,
     handleCallback,
-    logout
+    logout,
+    initialize
   }
 }

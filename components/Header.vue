@@ -8,6 +8,7 @@
       </div>
       <nav class="nav">
         <NuxtLink to="/design/foundation/introduction" class="nav-link" :class="{ active: $route.path.startsWith('/design') }">Design</NuxtLink>
+        <NuxtLink v-if="isAuthenticated" to="/editor" class="nav-link" :class="{ active: $route.path.startsWith('/editor') }">Editor</NuxtLink>
       </nav>
       <div class="header-right">
         <div class="search">
@@ -37,7 +38,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute, navigateTo } from '#app'
 import { useGithubAuth } from '~/composables/useGithubAuth'
 
 interface GitHubUser {
@@ -104,31 +106,32 @@ onMounted(() => {
 
 <style scoped>
 .header {
-  border-bottom: 1px solid #e5e7eb;
-  background-color: white;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 50;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .header-content {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 1rem;
+  max-width: 80rem;
+  margin: 0 auto;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
 }
 
 .logo-link {
   font-weight: 700;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   color: #111827;
   text-decoration: none;
 }
@@ -138,26 +141,30 @@ onMounted(() => {
   height: 4px;
   background-color: #3b82f6;
   border-radius: 50%;
+  margin-left: 2px;
 }
 
 .nav {
   display: flex;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .nav-link {
   color: #4b5563;
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
 }
 
 .nav-link:hover {
   color: #111827;
+  background-color: #f3f4f6;
 }
 
 .nav-link.active {
-  color: #3b82f6;
+  color: #111827;
+  background-color: #f3f4f6;
 }
 
 .header-right {
@@ -171,19 +178,17 @@ onMounted(() => {
 }
 
 .search-input {
+  width: 200px;
   padding: 0.5rem 1rem;
-  padding-left: 2.5rem;
   border: 1px solid #e5e7eb;
   border-radius: 0.375rem;
-  width: 200px;
-  font-size: 0.875rem;
+  background-color: #f9fafb;
 }
 
-.loading-indicator {
-  padding: 0.5rem 1rem;
-  color: #4b5563;
-  font-size: 0.875rem;
-  font-weight: 500;
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background-color: #ffffff;
 }
 
 .user-profile {
@@ -216,9 +221,8 @@ onMounted(() => {
   padding: 0.5rem 1rem;
   border: 1px solid #e5e7eb;
   border-radius: 0.375rem;
-  background-color: white;
-  color: #374151;
-  font-size: 0.875rem;
+  background-color: #ffffff;
+  color: #111827;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
@@ -230,6 +234,11 @@ onMounted(() => {
 }
 
 .github-icon {
-  color: #24292e;
+  color: currentColor;
+}
+
+.loading-indicator {
+  color: #6b7280;
+  font-size: 0.875rem;
 }
 </style>

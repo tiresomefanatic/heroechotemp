@@ -2,8 +2,13 @@
 export default defineNuxtConfig({
   css: ["~/styles/main.css"],
   devtools: { enabled: true },
-  modules: ["@nuxt/content", "@nuxt/ui"],
-  
+
+  modules: [
+    "@nuxt/content",
+    "@nuxt/ui",
+    "@nuxtjs/tailwindcss"
+  ],
+
   // Add runtime config for GitHub
   runtimeConfig: {
     github: {
@@ -30,43 +35,17 @@ export default defineNuxtConfig({
 
   // Configure Nitro for Vercel
   nitro: {
-    preset: "vercel",
-    prerender: {
-      failOnError: false,
-      crawlLinks: true,
-      routes: [
-        '/',
-        '/test'
-      ],
-      ignore: [
-        '/api/**'
-      ]
-    },
+    preset: 'vercel',
     routeRules: {
       "/api/**": {
         cors: true,
         headers: {
           "access-control-allow-methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
           "access-control-allow-origin": "*"
-        },
-        proxy: false
-      },
-    },
+        }
+      }
+    }
   },
 
-  content: {
-    documentDriven: false,
-    markdown: {
-      anchorLinks: false,
-      tags: {
-        p: "p",
-        h1: "h1",
-        h2: "h2",
-        h3: "h3",
-        h4: "h4",
-      },
-    },
-  },
-
-  compatibilityDate: "2025-01-02",
-});
+  compatibilityDate: "2025-01-06"
+})
