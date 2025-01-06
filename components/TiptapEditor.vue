@@ -16,7 +16,7 @@
           class="toolbar-button" 
           :class="{ loading: isSaving }"
           :disabled="isSaving || !hasChanges"
-          @click="saveChanges"
+          @click="saveToDisk"
         >
           <span v-if="!isSaving">Save Changes</span>
           <span v-else>Saving...</span>
@@ -90,6 +90,15 @@ interface GitHubUser {
   [key: string]: any;
 }
 
+// Composables and utilities
+const { showToast } = useToast();
+const { saveFile, getFileContent } = useGithub();
+
+// File upload state
+const selectedFile = ref<File | null>(null)
+const isUploading = ref(false)
+const showImageUpload = ref(false)
+
 const props = defineProps({
   content: {
     type: String,
@@ -108,9 +117,6 @@ const localContent = ref(props.content)
 const originalContent = ref(props.content)
 const isSaving = ref(false)
 const currentBranch = ref('')
-const showImageUpload = ref(false)
-const selectedFile = ref<File | null>(null)
-const isUploading = ref(false)
 const user = ref<GitHubUser | null>(null)
 
 // Composables
@@ -119,11 +125,8 @@ const {
   login, 
   createFork, 
   createBranch, 
-  saveFile,
   createPullRequest,
-  getFileContent 
 } = useGithub()
-const { showToast } = useToast()
 
 // Computed
 const isLoggedIn = computed(() => !!user.value)
@@ -140,47 +143,87 @@ const generateBranchName = () => {
   return `update-${props.filePath.split('/').pop()}-${timestamp}-${randomStr}`
 }
 
-const saveChanges = async () => {
-  if (!hasChanges.value || isSaving.value) return
+const saveToDisk = async () => {
+  if (!hasChanges.value || isSaving.value) return;
+  
+  isSaving.value = true;
+  const { showToast } = useToast();
+  const { saveFile } = useGithub();
 
-  isSaving.value = true
   try {
-    // Create fork if needed
-    await createFork()
-    
-    // Create new branch
-    const branchName = generateBranchName()
-    await createBranch(branchName)
-    currentBranch.value = branchName
-    
-    // Save file
-    await saveFile(props.filePath, localContent.value, `Update ${props.filePath}`)
-    originalContent.value = localContent.value
-    
-    showToast('Changes saved successfully!', 'success')
+    const timestamp = new Date().getTime();
+    const randomStr = Math.random().toString(36).substring(2, 8);
+    const branchName = `update-${props.filePath.split('/').pop()}-${timestamp}-${randomStr}`;
+
+    const result = await saveFileToGitHub(props.filePath, localContent.value);
+
+    if (result) {
+      showToast('Content saved successfully', 'success');
+      originalContent.value = localContent.value;
+    } else {
+      showToast('Failed to save content', 'error');
+    }
   } catch (error) {
-    console.error('Error saving changes:', error)
-    showToast('Failed to save changes. Please try again.', 'error')
+    console.error('Error saving content:', error);
+    showToast('Failed to save content', 'error');
   } finally {
-    isSaving.value = false
+    isSaving.value = false;
   }
-}
+};
+
+const saveFileToGitHub = async (path: string, content: string) => {
+  try {
+    const timestamp = new Date().getTime();
+    const randomStr = Math.random().toString(36).substring(2, 8);
+    const branchName = `update-${path.split('/').pop()}-${timestamp}-${randomStr}`;
+
+    const result = await saveFile(
+      'tiresomefanatic',  // owner
+      'heroechotemp',     // repo
+      path,               // path
+      content,            // content
+      `Update ${path}`,   // commit message
+      branchName         // branch
+    );
+
+    if (result) {
+      currentBranch.value = branchName;
+      showToast('File saved successfully', 'success');
+      return true;
+    } else {
+      showToast('Failed to save file', 'error');
+      return false;
+    }
+  } catch (error) {
+    console.error('Error saving file:', error);
+    showToast('Failed to save file', 'error');
+    return false;
+  }
+};
 
 const createPR = async () => {
-  if (!currentBranch.value) return
-  
+  if (!currentBranch.value) return;
+  const { showToast } = useToast();
+  const { createPullRequest } = useGithub();
+
   try {
-    const title = `Update ${props.filePath}`
-    const body = `This PR updates the content of \`${props.filePath}\`.
+    const result = await createPullRequest(
+      'tiresomefanatic',
+      'heroechotemp',
+      'main',
+      currentBranch.value,
+      `Update ${props.filePath}`,
+      `This PR updates the content of ${props.filePath}`
+    );
 
-Changes made:
-${localContent.value !== originalContent.value ? '- Content updated' : ''}`
-
-    await createPullRequest(currentBranch.value, title, body)
-    showToast('Pull request created successfully!', 'success')
+    if (result) {
+      showToast('Pull request created successfully', 'success');
+    } else {
+      showToast('Failed to create pull request', 'error');
+    }
   } catch (error) {
-    console.error('Error creating PR:', error)
-    showToast('Failed to create pull request. Please try again.', 'error')
+    console.error('Error creating PR:', error);
+    showToast('Failed to create pull request', 'error');
   }
 }
 
@@ -200,38 +243,64 @@ const handleFileSelect = (e: Event) => {
 }
 
 const uploadImage = async () => {
-  if (!selectedFile.value) return
-  
-  isUploading.value = true
+  if (!selectedFile.value) {
+    showToast('Please select a file first', 'error')
+    return
+  }
+
+  isUploading.value = true;
+
+  if (!selectedFile.value) {
+    isUploading.value = false;
+    return;
+  }
+
   try {
-    const timestamp = new Date().getTime()
-    const fileName = `${timestamp}-${selectedFile.value.name}`
-    const path = `images/${fileName}`
+    if (!selectedFile.value) {
+      console.error('No file selected');
+      return;
+    }
+
+    const file = selectedFile.value; // Store reference to avoid null issues
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
     
-    // Upload image to repository
-    const imageUrl = await saveFile(
-      path,
-      await selectedFile.value.arrayBuffer(),
-      `Upload image ${fileName}`
-    )
-    
-    // Insert image markdown at cursor position
-    const imageMarkdown = `![${fileName}](${imageUrl})`
-    const textarea = document.querySelector('.markdown-editor') as HTMLTextAreaElement
-    const cursorPos = textarea.selectionStart
-    localContent.value = 
-      localContent.value.slice(0, cursorPos) + 
-      imageMarkdown + 
-      localContent.value.slice(cursorPos)
-    
-    showImageUpload.value = false
-    showToast('Image uploaded successfully!', 'success')
+    reader.onload = async () => {
+      const base64Data = reader.result as string;
+      const base64Content = base64Data.split(',')[1];
+      const timestamp = new Date().getTime();
+      const fileName = `${file.name}-${timestamp}`;
+      const filePath = `images/${fileName}`;
+
+      const result = await saveFile(
+        'tiresomefanatic',
+        'heroechotemp',
+        filePath,
+        base64Content,
+        `Upload image ${fileName}`,
+        'main'
+      );
+
+      if (result?.content?.download_url) {
+        const imageMarkdown = `![${fileName}](${result.content.download_url})`;
+        const textarea = document.querySelector('.markdown-editor') as HTMLTextAreaElement;
+        const cursorPos = textarea.selectionStart;
+        localContent.value = 
+          localContent.value.slice(0, cursorPos) + 
+          imageMarkdown + 
+          localContent.value.slice(cursorPos);
+        
+        showImageUpload.value = false;
+        showToast('Image uploaded successfully!', 'success');
+      } else {
+        showToast('Failed to upload image', 'error');
+      }
+    };
   } catch (error) {
-    console.error('Error uploading image:', error)
-    showToast('Failed to upload image. Please try again.', 'error')
+    console.error('Error uploading image:', error);
+    showToast('Failed to upload image', 'error');
   } finally {
-    isUploading.value = false
-    selectedFile.value = null
+    isUploading.value = false;
   }
 }
 
@@ -240,7 +309,7 @@ const handleKeyboard = (e: KeyboardEvent) => {
   // Save: Ctrl/Cmd + S
   if ((e.ctrlKey || e.metaKey) && e.key === 's') {
     e.preventDefault()
-    saveChanges()
+    saveToDisk()
   }
   
   // Image upload: Ctrl/Cmd + Shift + I
@@ -260,9 +329,13 @@ onMounted(async () => {
   
   // Load initial content
   try {
-    const content = await getFileContent(props.filePath)
-    localContent.value = content
-    originalContent.value = content
+    const content = await getFileContent('tiresomefanatic', 'heroechotemp', props.filePath)
+    if (content) {
+      localContent.value = content
+      originalContent.value = content
+    } else {
+      showToast('No content found for this file.', 'error')
+    }
   } catch (error) {
     console.error('Error loading content:', error)
     showToast('Failed to load content. Please try again.', 'error')
