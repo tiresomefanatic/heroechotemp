@@ -12,10 +12,9 @@ export default defineNuxtConfig({
     },
     public: {
       githubClientId: process.env.NUXT_PUBLIC_GITHUB_CLIENT_ID,
-      siteUrl:
-        process.env.NODE_ENV === "production"
-          ? "https://tiresomefanatic.github.io/heroechotemp"
-          : "http://localhost:3000",
+      siteUrl: process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}`
+        : 'http://localhost:3000',
     },
   },
 
@@ -31,9 +30,9 @@ export default defineNuxtConfig({
     }
   },
 
-  // Configure Nitro for GitHub Pages
+  // Configure Nitro for Vercel
   nitro: {
-    preset: "github-pages",
+    preset: "vercel-edge",
     prerender: {
       failOnError: false,
       crawlLinks: true,
