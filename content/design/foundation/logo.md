@@ -1,6 +1,6 @@
 ---
 title: Logo
-description: Echo Design System logo documentation
+description: Echo Design System logo documen
 ---
 
 <div class="design-layout">
