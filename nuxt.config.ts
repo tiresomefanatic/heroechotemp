@@ -56,4 +56,6 @@ export default defineNuxtConfig({
       crawlLinks: true,
     },
   },
+
+  compatibilityDate: "2025-01-07",
 });
