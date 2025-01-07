@@ -1,6 +1,6 @@
 ---
 title: Typography
-description: Echo Design System typography documentation
+description: Echo Design System typography document
 ---
 
 <div class="design-layout">
@@ -8,7 +8,7 @@ description: Echo Design System typography documentation
 
 # Typography
 
-Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam dolor laci
+Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam dolor lacinia.
 
 ## Primary typeface
 
