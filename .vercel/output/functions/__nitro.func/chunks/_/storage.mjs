@@ -1,6 +1,6 @@
-import { k as kebabCase, e as defu, i as isRelative, f as destr, h as extname, j as camelCase, l as joinURL, u as useRuntimeConfig, m as isPreview, n as prefixStorage, o as useStorage, w as withLeadingSlash, b as withoutTrailingSlash, q as getPreview, t as hash, v as useNitroApp } from '../nitro/nitro.mjs';
+import { k as kebabCase, l as defu, m as isRelative, n as destr, o as extname, q as camelCase, t as joinURL, u as useRuntimeConfig, v as isPreview, w as prefixStorage, x as useStorage, y as withLeadingSlash, z as withoutTrailingSlash, A as getPreview, B as hash, j as useNitroApp } from '../nitro/nitro.mjs';
 import { unified } from 'unified';
-import { d as defineTransformer, a as generatePath, p as pathMeta } from './path-meta.mjs';
+import { d as defineTransformer, g as generatePath, p as pathMeta } from './path-meta.mjs';
 import { toString } from 'mdast-util-to-string';
 import { postprocess, preprocess } from 'micromark';
 import { stringifyPosition } from 'unist-util-stringify-position';
@@ -61,7 +61,7 @@ const sortList = (data, params) => {
     data = data.sort((a, b) => {
       const values = [get(a, key), get(b, key)].map((value) => {
         if (value === null) {
-          return void 0;
+          return undefined;
         }
         if (value instanceof Date) {
           return value.toISOString();
@@ -82,7 +82,7 @@ const assertArray = (value, message = "Expected an array") => {
   }
 };
 const ensureArray = (value) => {
-  return Array.isArray(value) ? value : [void 0, null].includes(value) ? [] : [value];
+  return Array.isArray(value) ? value : [undefined, null].includes(value) ? [] : [value];
 };
 
 const arrayParams = ["sort", "where", "only", "without"];
@@ -604,7 +604,7 @@ const initialPoint = {
 const fromCSV = function(value, encoding, options) {
   if (typeof encoding !== "string") {
     options = encoding;
-    encoding = void 0;
+    encoding = undefined;
   }
   return compiler()(
     postprocess(
@@ -661,7 +661,7 @@ function compiler() {
     if (tokenStack.length > 0) {
       const tail = tokenStack[tokenStack.length - 1];
       const handler = tail[1] || defaultOnError;
-      handler.call(context, void 0, tail[0]);
+      handler.call(context, undefined, tail[0]);
     }
     tree.position = {
       start: point(
@@ -903,10 +903,10 @@ function emphasis(state, node) {
 function parseThematicBlock(lang) {
   if (!lang?.trim()) {
     return {
-      language: void 0,
-      highlights: void 0,
-      filename: void 0,
-      meta: void 0
+      language: undefined,
+      highlights: undefined,
+      filename: undefined,
+      meta: undefined
     };
   }
   const languageMatches = lang.replace(/[{|[](.+)/, "").match(/^[^ \t]+(?=[ \t]|$)/);
@@ -914,10 +914,10 @@ function parseThematicBlock(lang) {
   const filenameMatches = lang.match(/\[((\\\]|[^\]])*)\]/);
   const meta = lang.replace(languageMatches?.[0] ?? "", "").replace(highlightTokensMatches?.[0] ?? "", "").replace(filenameMatches?.[0] ?? "", "").trim();
   return {
-    language: languageMatches?.[0] || void 0,
-    highlights: parseHighlightedLines(highlightTokensMatches?.[1] || void 0),
+    language: languageMatches?.[0] || undefined,
+    highlights: parseHighlightedLines(highlightTokensMatches?.[1] || undefined),
     // https://github.com/nuxt/content/pull/2169
-    filename: filenameMatches?.[1].replace(/\\\]/g, "]") || void 0,
+    filename: filenameMatches?.[1].replace(/\\\]/g, "]") || undefined,
     meta
   };
 }
@@ -926,7 +926,7 @@ function parseHighlightedLines(lines) {
     const [start, end] = line.trim().split("-").map((a) => Number(a.trim()));
     return Array.from({ length: (end || start) - start + 1 }).map((_, i) => start + i);
   });
-  return lineArray.length ? lineArray : void 0;
+  return lineArray.length ? lineArray : undefined;
 }
 const TAG_NAME_REGEXP = /^<\/?([\w-]+)(\s[^>]*?)?\/?>/;
 function getTagName(value) {
@@ -976,7 +976,7 @@ function html(state, node) {
     state.patch(node, result);
     return state.applyData(node, result);
   }
-  return void 0;
+  return undefined;
 }
 
 function link$1(state, node) {
@@ -984,7 +984,7 @@ function link$1(state, node) {
     ...node.attributes || {},
     href: normalizeUri(node.url)
   };
-  if (node.title !== null && node.title !== void 0) {
+  if (node.title !== null && node.title !== undefined) {
     properties.title = node.title;
   }
   const result = {
@@ -1163,10 +1163,10 @@ function paragraph(state, node) {
 
 function image(state, node) {
   const properties = { ...node.attributes, src: normalizeUri(node.url) };
-  if (node.alt !== null && node.alt !== void 0) {
+  if (node.alt !== null && node.alt !== undefined) {
     properties.alt = node.alt;
   }
-  if (node.title !== null && node.title !== void 0) {
+  if (node.title !== null && node.title !== undefined) {
     properties.title = node.title;
   }
   const result = { type: "element", tagName: "img", properties, children: [] };
@@ -1462,7 +1462,7 @@ function compileHast(options = {}) {
   }
   this.Compiler = (tree) => {
     const body = compileToJSON(tree);
-    let excerpt = void 0;
+    let excerpt = undefined;
     const excerptIndex = tree.children.findIndex((node) => node.type === "comment" && node.value?.trim() === "more");
     if (excerptIndex !== -1) {
       excerpt = compileToJSON({
@@ -1503,7 +1503,7 @@ const createMarkdownParser = async (inlineOptions = {}) => {
     ...generatedMdcConfigs || [],
     ...inlineOptions.configs || []
   ];
-  if (inlineOptions.highlight != null && inlineOptions.highlight != false && inlineOptions.highlight.highlighter !== void 0 && typeof inlineOptions.highlight.highlighter !== "function") {
+  if (inlineOptions.highlight != null && inlineOptions.highlight != false && inlineOptions.highlight.highlighter !== undefined && typeof inlineOptions.highlight.highlighter !== "function") {
     inlineOptions = {
       ...inlineOptions,
       highlight: {
@@ -1595,8 +1595,8 @@ const markdown = defineTransformer({
     const highlightOptions = options.highlight ? {
       ...options.highlight,
       // Pass only when it's an function. String values are handled by `@nuxtjs/mdc`
-      highlighter: typeof options.highlight?.highlighter === "function" ? options.highlight.highlighter : void 0
-    } : void 0;
+      highlighter: typeof options.highlight?.highlighter === "function" ? options.highlight.highlighter : undefined
+    } : undefined;
     const parsed = await parseMarkdown(content, {
       ...config,
       highlight: highlightOptions,
@@ -1647,7 +1647,7 @@ function link(state, node) {
     ...node.attributes || {},
     href: normalizeUri(normalizeLink(node.url))
   };
-  if (node.title !== null && node.title !== void 0) {
+  if (node.title !== null && node.title !== undefined) {
     properties.title = node.title;
   }
   const result = {

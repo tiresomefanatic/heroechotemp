@@ -1,3 +1,0 @@
-import{_ as i}from"./DhsA4AH5.js";import{_ as p}from"./BArcnM6k.js";import{_ as c,C as m,c as s,a as u,t as v,s as a,w as f,o as t,y as C}from"./CJMzKeSE.js";const g={class:"page-wrapper"},k={key:0},y={key:1},V={__name:"test",setup(B){const n=m(`# Test Content
-
-This is a test editor.`),r=e=>{console.log("Content:",e),alert("Content logged to console")};return(e,o)=>{const l=i,_=p;return t(),s("div",g,[o[1]||(o[1]=u("h1",null,"Test Editor",-1)),e.pending?(t(),s("div",k,"Loading...")):e.error?(t(),s("div",y,v(e.error),1)):(t(),a(_,{key:2},{default:f(()=>[n.value?(t(),a(l,{key:0,modelValue:n.value,"onUpdate:modelValue":o[0]||(o[0]=d=>n.value=d),onSave:r},null,8,["modelValue"])):C("",!0)]),_:1}))])}}},x=c(V,[["__scopeId","data-v-846972e2"]]);export{x as default};

@@ -25,7 +25,7 @@ export const useGithubAuth = () => {
   const initialize = () => {
     if (!process.client) return;
 
-    const token = localStorage.getItem("github_access_token");
+    const token = localStorage.getItem("github_token");
     if (token) {
       accessToken.value = token;
       isAuthenticated.value = true;
@@ -35,60 +35,86 @@ export const useGithubAuth = () => {
   const initiateLogin = () => {
     if (!process.client) return;
 
-    const clientId = config.public.githubClientId;
-    if (!clientId) {
-      error.value = "GitHub client ID is not configured";
-      return;
+    try {
+      const clientId = config.public.githubClientId;
+      console.log("Client ID available:", !!clientId);
+
+      if (!clientId) {
+        throw new Error("GitHub client ID is not configured");
+      }
+
+      // Generate and store state
+      const state = Math.random().toString(36).substring(7);
+      localStorage.setItem("github_oauth_state", state);
+
+      // Always use port 3000 for local development
+      const baseUrl =
+        process.env.NODE_ENV === "production"
+          ? config.public.siteUrl
+          : "http://localhost:3000";
+      console.log("Base URL:", baseUrl);
+
+      // Construct callback URL
+      const callbackUrl = new URL("/auth/callback", baseUrl).toString();
+      console.log("Callback URL:", callbackUrl);
+
+      // Construct GitHub authorization URL
+      const githubUrl = new URL("https://github.com/login/oauth/authorize");
+      githubUrl.searchParams.set("client_id", clientId);
+      githubUrl.searchParams.set("redirect_uri", callbackUrl);
+      githubUrl.searchParams.set("scope", "repo user");
+      githubUrl.searchParams.set("state", state);
+      githubUrl.searchParams.set("response_type", "code");
+
+      console.log("Redirecting to GitHub:", githubUrl.toString());
+
+      // Redirect to GitHub
+      window.location.href = githubUrl.toString();
+    } catch (err) {
+      console.error("Error initiating GitHub login:", err);
+      error.value =
+        err instanceof Error ? err.message : "Failed to initiate GitHub login";
     }
-
-    const state = Math.random().toString(36).substring(7);
-    localStorage.setItem("github_oauth_state", state);
-
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: `${config.public.siteUrl}/auth/callback`,
-      scope: "repo user",
-      state,
-      response_type: "code",
-    });
-
-    window.location.href = `https://github.com/login/oauth/authorize?${params}`;
   };
 
   const handleCallback = async (code: string, state: string) => {
-    if (!process.client) return;
-
-    const savedState = localStorage.getItem("github_oauth_state");
-    localStorage.removeItem("github_oauth_state");
-
-    if (state !== savedState) {
-      error.value = "Invalid state parameter";
-      return;
-    }
-
-    loading.value = true;
-    error.value = null;
-
     try {
-      // Explicitly type the response
-      const response = await $fetch<GitHubTokenResponse>("/api/auth/token", {
+      loading.value = true;
+      error.value = null;
+
+      // Verify state
+      const savedState = localStorage.getItem("github_oauth_state");
+      if (!savedState || savedState !== state) {
+        throw new Error("Invalid state parameter");
+      }
+
+      // Exchange code for token
+      const response = await fetch("/api/auth/token", {
         method: "POST",
-        body: { code },
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code }),
       });
 
-      // Now TypeScript knows response.access_token is a string
-      if (response.access_token) {
-        accessToken.value = response.access_token;
-        localStorage.setItem("github_access_token", response.access_token);
-        isAuthenticated.value = true;
-      } else {
-        throw new Error("Invalid response from token endpoint");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Failed to exchange code for token"
+        );
       }
+
+      const data = await response.json();
+      localStorage.setItem("github_access_token", data.access_token);
+      accessToken.value = data.access_token;
+      isAuthenticated.value = true;
+
+      // Clear OAuth state
+      localStorage.removeItem("github_oauth_state");
     } catch (err) {
-      // Type guard for error handling
-      const apiError = err as ApiError;
-      console.error("Authentication error:", apiError);
-      error.value = apiError.message || "Failed to authenticate";
+      console.error("Error handling callback:", err);
+      error.value =
+        err instanceof Error ? err.message : "Authentication failed";
       isAuthenticated.value = false;
       accessToken.value = null;
     } finally {
@@ -99,12 +125,15 @@ export const useGithubAuth = () => {
   const logout = () => {
     if (!process.client) return;
 
+    localStorage.removeItem("github_access_token");
     accessToken.value = null;
     isAuthenticated.value = false;
-    localStorage.removeItem("github_access_token");
   };
 
-  initialize();
+  // Initialize on mount if in client
+  if (process.client) {
+    initialize();
+  }
 
   return {
     isAuthenticated,
@@ -114,6 +143,5 @@ export const useGithubAuth = () => {
     initiateLogin,
     handleCallback,
     logout,
-    initialize,
   };
 };

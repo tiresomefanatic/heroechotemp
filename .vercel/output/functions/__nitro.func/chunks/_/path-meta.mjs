@@ -1,4 +1,4 @@
-import { p as pascalCase, w as withLeadingSlash, b as withoutTrailingSlash } from '../nitro/nitro.mjs';
+import { C as pascalCase, y as withLeadingSlash, z as withoutTrailingSlash } from '../nitro/nitro.mjs';
 import slugify from 'slugify';
 
 const defineTransformer = (transformer) => {
@@ -61,5 +61,5 @@ function refineUrlPart(name) {
   return name.replace(/(\d+\.)?(.*)/, "$2").replace(/^index(\.draft)?$/, "").replace(/\.draft$/, "");
 }
 
-export { generatePath as a, defineTransformer as d, generateTitle as g, pathMeta as p };
+export { generateTitle as a, defineTransformer as d, generatePath as g, pathMeta as p };
 //# sourceMappingURL=path-meta.mjs.map

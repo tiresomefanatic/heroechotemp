@@ -22,7 +22,6 @@ export default defineNuxtConfig({
       },
       // Useful plugins for documentation
       remarkPlugins: [
-        "remark-github", // Handles GitHub-flavored markdown
       ],
       rehypePlugins: [
         "rehype-slug", // Adds IDs to headings
@@ -39,12 +38,15 @@ export default defineNuxtConfig({
     },
     public: {
       githubClientId: process.env.NUXT_PUBLIC_GITHUB_CLIENT_ID,
-      siteUrl:
-        process.env.NUXT_PUBLIC_SITE_URL ||
-        (process.env.VERCEL_URL
-          ? `https://${process.env.VERCEL_URL}`
-          : "http://localhost:3000"),
+      siteUrl: process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}`
+        : process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
     },
+  },
+
+  // Development server configuration
+  devServer: {
+    port: 3000
   },
 
   // Vercel deployment configuration
@@ -52,26 +54,6 @@ export default defineNuxtConfig({
     preset: "vercel",
     prerender: {
       crawlLinks: true,
-      routes: ["/", "/design", "/design/foundation"],
-    },
-  },
-
-  // Route-specific behavior
-  routeRules: {
-    // Static homepage
-    "/": { prerender: true },
-    // Documentation pages
-    "/design/**": {
-      ssr: true,
-      prerender: true,
-    },
-    // API endpoints
-    "/api/**": {
-      cors: true,
-      headers: {
-        "access-control-allow-methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
-        "access-control-allow-origin": "*",
-      },
     },
   },
 });

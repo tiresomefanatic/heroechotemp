@@ -1,4 +1,4 @@
-import { g as generateTitle } from './path-meta.mjs';
+import { a as generateTitle } from './path-meta.mjs';
 import { u as useRuntimeConfig } from '../nitro/nitro.mjs';
 import 'slugify';
 import 'node:http';
@@ -75,7 +75,7 @@ function createNav(contents, configs) {
   }, []);
   return sortAndClear(nav);
 }
-const collator = new Intl.Collator(void 0, { numeric: true, sensitivity: "base" });
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
 function sortAndClear(nav) {
   nav.forEach((item) => {
     item._file = item._file.split(".").slice(0, -1).join(".");
