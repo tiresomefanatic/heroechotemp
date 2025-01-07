@@ -1,6 +1,6 @@
 ---
 title: Color
-description: Echo Design System color documentation
+description: Echo Design System 
 ---
 
 <style>
@@ -129,7 +129,7 @@ description: Echo Design System color documentation
 
 # Color
 
-Our color system helps define the visual expression of our products. Each group of colors is carefully selected to ensure our designs are accessible and visually appealing.
+Our color system helps define the visual expression of our products. Each group of colors is carefully selected to
 
 <div class="color-section">
   <div class="color-heading">
