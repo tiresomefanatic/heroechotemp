@@ -1,6 +1,6 @@
 ---
 title: Applications
-description: Echo Design System application guidelines
+description: Echo Design System application guidel
 ---
 
 <div class="design-layout">
