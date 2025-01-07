@@ -1,6 +1,6 @@
 ---
 title: Icons
-description: Echo Design System icons documentation
+description: Echo Design System icons documentation\\\\\\\
 ---
 
 <div class="design-layout">
