@@ -1,8 +1,7 @@
 {
   "buildCommand": "NITRO_PRESET=vercel nuxt build",
-  "devCommand": "nuxt dev",
-  "outputDirectory": ".output",
-  "framework": "nuxt",
+  "devCommand": "nuxt",
+  "outputDirectory": "dist",
   "functions": {
     "api/**/*": {
       "runtime": "nodejs18.x"
