@@ -1,6 +1,6 @@
 ---
 title: Animation
-description: Echo Design System animation documentation
+description: Echo Design System animation dtation
 ---
 
 <div class="design-layout">
