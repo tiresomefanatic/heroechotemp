@@ -1,6 +1,6 @@
 ---
 title: Layout
-description: Echo Design System layout documentation
+description: Echo Design System layout documenta
 ---
 
 <div class="design-layout">
