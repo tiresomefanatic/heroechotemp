@@ -1,6 +1,6 @@
 ---
 title: Imagery
-description: Echo Design System imagery documentation
+description: Echo Design System imagery docution
 ---
 
 <div class="design-layout">
