@@ -1,175 +1,156 @@
 ---
-title: Foundation of Design
-description: Echo Design System documentation
+title: Echo Design System
+description: Modern design system for digital experiences
+navigation:
+  title: Home
 ---
 
 <div class="hero">
   <h1>FOUNDATION<br/>OF DESIGN</h1>
+  <p class="hero-text">Echo is our comprehensive design system for creating cohesive digital experiences. It provides everything you need — from basic foundations to complex components.</p>
 </div>
 
 ## Get started
 
 <div class="card-grid">
   <a href="/design" class="card design">
-    <img src="/images/design-icon.svg" alt="Design icon" />
+    <div class="card-icon">
+      <img src="/images/design-icon.svg" alt="Design icon" />
+    </div>
     <h3>Design</h3>
-    <p>Create beautiful and intuitive interfaces that delight users and enhance their experience with our digital products.</p>
+    <p>Create beautiful and intuitive interfaces with our comprehensive design guidelines and principles.</p>
   </a>
   <a href="/develop" class="card develop">
-    <img src="/images/develop-icon.svg" alt="Develop icon" />
+    <div class="card-icon">
+      <img src="/images/develop-icon.svg" alt="Develop icon" />
+    </div>
     <h3>Develop</h3>
-    <p>Build robust and scalable solutions using modern technologies and best practices in software development.</p>
+    <p>Build robust solutions using our component library, code examples, and development best practices.</p>
   </a>
   <a href="/contribute" class="card contribute">
-    <img src="/images/contribute-icon.svg" alt="Contribute icon" />
+    <div class="card-icon">
+      <img src="/images/contribute-icon.svg" alt="Contribute icon" />
+    </div>
     <h3>Contribute</h3>
-    <p>Join our community of creators and innovators to shape the future of digital experiences together.</p>
+    <p>Join our community and help shape the future of our design system through feedback and contributions.</p>
   </a>
 </div>
 
-## What is the Echosystem?
+## What is Echo?
 
-Echo is the Design System we use to create Web products. Our main goal is to offer everything in one place — assets, resources, files and guidelines. Always accessible to the people that need them and always available in the spaces that we work in.
+Echo is more than just a design system — it's a living ecosystem that evolves with our needs and experiences. Our goal is to provide a single source of truth for design and development, ensuring consistency across all our digital products while maintaining flexibility for innovation.
 
-<div class="echo-banner">
-  <div class="banner-content">
-    <h2>Echoing from the past.<br/>Echoing into the future.</h2>
+<div class="principles-grid">
+  <div class="principle">
+    <h3>Cohesive</h3>
+    <p>Create seamless experiences across all touchpoints through consistent design patterns and interactions.</p>
   </div>
-</div>
-
-## Goals
-
-<div class="goals">
-  <div class="goal">
-    <h3>Cohesive Experience</h3>
-    <p>Create a cohesive experience across all digital, brand and product touchpoints</p>
+  <div class="principle">
+    <h3>Flexible</h3>
+    <p>Adapt and scale to meet the unique needs of different products while maintaining core design principles.</p>
   </div>
-  <div class="goal">
-    <h3>Autonomy</h3>
-    <p>Give autonomy to all teams creating or working on our digital products</p>
-  </div>
-  <div class="goal">
-    <h3>Feedback and contribution</h3>
-    <p>Collect feedback and offer design toolkits to help improve the digital product creation process</p>
-  </div>
-</div>
-
-## How did ECHO come about?
-
-### Echo Experience
-
-Lorem ipsum dolor sit amet consectetur. Et ut rhoncus dolor vestibulum pharetra et. A vitae pharetra nullam dolor vestibulum pharetra et. Pretium consequat venenatis augue quam nibh laoreet tempus tempor mi. Laoreet et proin diam adipiscing laboris.
-
-<div class="footer-links">
-  <div class="link-section">
-    <h4>What's next?</h4>
-    <p>Learn more about our design system and contribute to our ecosystem.</p>
-    <a href="/design" class="link">View options →</a>
-  </div>
-  <div class="link-section">
-    <h4>Get in touch</h4>
-    <p>Questions or feedback? We'd love to hear from you.</p>
-    <a href="/contact" class="link">Contact us →</a>
+  <div class="principle">
+    <h3>Collaborative</h3>
+    <p>Built together with our community, incorporating feedback and evolving with our collective needs.</p>
   </div>
 </div>
 
 <style>
-:root {
-  --echo-orange: #ff4d00;
-  --echo-blue: #4b6bfb;
-}
-
 .hero {
-  background-color: var(--echo-orange);
+  background: var(--echo-orange);
+  margin: -2rem -2rem 3rem -2rem;
   padding: 4rem 2rem;
-  margin: -2rem -2rem 2rem -2rem;
   color: white;
+  text-align: center;
 }
 
 .hero h1 {
-  font-size: 3rem;
+  font-size: 3.5rem;
   line-height: 1.2;
-  margin: 0;
+  margin: 0 0 1.5rem 0;
+  font-weight: 700;
+}
+
+.hero-text {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  max-width: 640px;
+  margin: 0 auto;
+  opacity: 0.9;
 }
 
 .card-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
-  margin: 2rem 0;
+  margin: 2rem 0 4rem 0;
 }
 
 .card {
   padding: 2rem;
-  border-radius: 8px;
-  background: #f5f5f5;
+  border-radius: 1rem;
+  background: #f8f9fa;
   text-decoration: none;
   color: inherit;
-  transition: transform 0.2s;
+  transition: all 0.2s;
 }
 
 .card:hover {
   transform: translateY(-4px);
+  background: white;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.1);
 }
 
-.card img {
-  width: 100%;
-  height: auto;
-  margin-bottom: 1rem;
+.card-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1.5rem;
 }
 
-.echo-banner {
-  background: var(--echo-blue);
-  color: white;
-  padding: 4rem 2rem;
-  margin: 3rem -2rem;
-  text-align: center;
+.card h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
-.echo-banner h2 {
-  font-size: 2.5rem;
-  line-height: 1.2;
+.card p {
   margin: 0;
+  color: #666;
+  line-height: 1.6;
 }
 
-.goals {
+.principles-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
   margin: 2rem 0;
 }
 
-.goal {
-  padding: 1.5rem;
-  background: #f5f5f5;
-  border-radius: 8px;
+.principle {
+  padding: 2rem;
+  background: #f8f9fa;
+  border-radius: 1rem;
 }
 
-.footer-links {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
-  margin-top: 4rem;
-  padding-top: 2rem;
-  border-top: 1px solid #eee;
+.principle h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
-.link {
-  color: var(--echo-orange);
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.link:hover {
-  text-decoration: underline;
+.principle p {
+  margin: 0;
+  color: #666;
+  line-height: 1.6;
 }
 
 @media (max-width: 768px) {
-  .card-grid, .goals {
-    grid-template-columns: 1fr;
+  .hero h1 {
+    font-size: 2.5rem;
   }
   
-  .footer-links {
+  .card-grid,
+  .principles-grid {
     grid-template-columns: 1fr;
   }
 }

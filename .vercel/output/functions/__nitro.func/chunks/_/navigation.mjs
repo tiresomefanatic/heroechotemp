@@ -1,4 +1,4 @@
-import { a as generateTitle } from './path-meta.mjs';
+import { g as generateTitle } from './path-meta.mjs';
 import { u as useRuntimeConfig } from '../nitro/nitro.mjs';
 import 'slugify';
 import 'node:http';

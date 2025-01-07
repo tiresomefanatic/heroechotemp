@@ -152,8 +152,6 @@ function stringifyQuery(query) {
 const PROTOCOL_STRICT_REGEX = /^[\s\w\0+.-]{2,}:([/\\]{1,2})/;
 const PROTOCOL_REGEX = /^[\s\w\0+.-]{2,}:([/\\]{2})?/;
 const PROTOCOL_RELATIVE_REGEX = /^([/\\]\s*){2,}[^/\\]/;
-const PROTOCOL_SCRIPT_RE = /^[\s\0]*(blob|data|javascript|vbscript):$/i;
-const TRAILING_SLASH_RE = /\/$|\/\?|\/#/;
 const JOIN_LEADING_SLASH_RE = /^\.?\//;
 function isRelative(inputString) {
   return ["./", "../"].some((string_) => inputString.startsWith(string_));
@@ -167,52 +165,20 @@ function hasProtocol(inputString, opts = {}) {
   }
   return PROTOCOL_REGEX.test(inputString) || (opts.acceptRelative ? PROTOCOL_RELATIVE_REGEX.test(inputString) : false);
 }
-function isScriptProtocol(protocol) {
-  return !!protocol && PROTOCOL_SCRIPT_RE.test(protocol);
-}
 function hasTrailingSlash(input = "", respectQueryAndFragment) {
-  if (!respectQueryAndFragment) {
+  {
     return input.endsWith("/");
   }
-  return TRAILING_SLASH_RE.test(input);
 }
 function withoutTrailingSlash(input = "", respectQueryAndFragment) {
-  if (!respectQueryAndFragment) {
+  {
     return (hasTrailingSlash(input) ? input.slice(0, -1) : input) || "/";
   }
-  if (!hasTrailingSlash(input, true)) {
-    return input || "/";
-  }
-  let path = input;
-  let fragment = "";
-  const fragmentIndex = input.indexOf("#");
-  if (fragmentIndex >= 0) {
-    path = input.slice(0, fragmentIndex);
-    fragment = input.slice(fragmentIndex);
-  }
-  const [s0, ...s] = path.split("?");
-  const cleanPath = s0.endsWith("/") ? s0.slice(0, -1) : s0;
-  return (cleanPath || "/") + (s.length > 0 ? `?${s.join("?")}` : "") + fragment;
 }
 function withTrailingSlash(input = "", respectQueryAndFragment) {
-  if (!respectQueryAndFragment) {
+  {
     return input.endsWith("/") ? input : input + "/";
   }
-  if (hasTrailingSlash(input, true)) {
-    return input || "/";
-  }
-  let path = input;
-  let fragment = "";
-  const fragmentIndex = input.indexOf("#");
-  if (fragmentIndex >= 0) {
-    path = input.slice(0, fragmentIndex);
-    fragment = input.slice(fragmentIndex);
-    if (!path) {
-      return fragment;
-    }
-  }
-  const [s0, ...s] = path.split("?");
-  return s0 + "/" + (s.length > 0 ? `?${s.join("?")}` : "") + fragment;
 }
 function hasLeadingSlash(input = "") {
   return input.startsWith("/");
@@ -372,7 +338,7 @@ function parse(str, options) {
     throw new TypeError("argument str must be a string");
   }
   const obj = {};
-  const opt = options || {};
+  const opt = {};
   const dec = opt.decode || decode;
   let index = 0;
   while (index < str.length) {
@@ -1137,16 +1103,6 @@ function sha256base64(message) {
 function hash(object, options = {}) {
   const hashed = typeof object === "string" ? object : objectHash(object, options);
   return sha256base64(hashed).slice(0, 10);
-}
-
-function isEqual(object1, object2, hashOptions = {}) {
-  if (object1 === object2) {
-    return true;
-  }
-  if (objectHash(object1, hashOptions) === objectHash(object2, hashOptions)) {
-    return true;
-  }
-  return false;
 }
 
 const NODE_TYPES = {
@@ -2479,12 +2435,6 @@ function setCookie(event, name, value, serializeOptions) {
     return cookieValue && _optionsHash !== objectHash(parse(cookieValue));
   });
   event.node.res.setHeader("set-cookie", [...setCookies, cookieStr]);
-}
-function deleteCookie(event, name, serializeOptions) {
-  setCookie(event, name, "", {
-    ...serializeOptions,
-    maxAge: 0
-  });
 }
 function splitCookiesString(cookiesString) {
   if (Array.isArray(cookiesString)) {
@@ -3975,8 +3925,7 @@ function createNodeFetch() {
 const fetch$1 = globalThis.fetch ? (...args) => globalThis.fetch(...args) : createNodeFetch();
 const Headers$1 = globalThis.Headers || s;
 const AbortController = globalThis.AbortController || i;
-const ofetch = createFetch$1({ fetch: fetch$1, Headers: Headers$1, AbortController });
-const $fetch$1 = ofetch;
+createFetch$1({ fetch: fetch$1, Headers: Headers$1, AbortController });
 
 const nullBodyResponses = /* @__PURE__ */ new Set([101, 204, 205, 304]);
 function createCall(handle) {
@@ -4621,9 +4570,9 @@ function _expandFromEnv(value) {
 
 const _inlineRuntimeConfig = {
   "app": {
-    "baseURL": "/heroechotemp/",
-    "buildId": "d8671edd-eb62-407c-9ef3-7bb31f7a2bdb",
-    "buildAssetsDir": "assets",
+    "baseURL": "/",
+    "buildId": "a2a8fa8b-fcf3-437e-a375-b4e34445ddcf",
+    "buildAssetsDir": "/_nuxt/",
     "cdnURL": ""
   },
   "nitro": {
@@ -4642,17 +4591,17 @@ const _inlineRuntimeConfig = {
           "access-control-max-age": "0"
         }
       },
-      "/assets/builds/meta/**": {
+      "/_nuxt/builds/meta/**": {
         "headers": {
           "cache-control": "public, max-age=31536000, immutable"
         }
       },
-      "/assets/builds/**": {
+      "/_nuxt/builds/**": {
         "headers": {
           "cache-control": "public, max-age=1, immutable"
         }
       },
-      "/assets/**": {
+      "/_nuxt/**": {
         "headers": {
           "cache-control": "public, max-age=31536000, immutable"
         }
@@ -4666,16 +4615,16 @@ const _inlineRuntimeConfig = {
       "components": {
         "prose": true,
         "map": {
-          "p": "p",
+          "p": "prose-p",
           "a": "prose-a",
           "blockquote": "prose-blockquote",
           "code-inline": "prose-code-inline",
           "code": "ProseCodeInline",
           "em": "prose-em",
-          "h1": "h1",
-          "h2": "h2",
-          "h3": "h3",
-          "h4": "h4",
+          "h1": "prose-h1",
+          "h2": "prose-h2",
+          "h3": "prose-h3",
+          "h4": "prose-h4",
           "h5": "prose-h5",
           "h6": "prose-h6",
           "hr": "prose-hr",
@@ -4695,9 +4644,9 @@ const _inlineRuntimeConfig = {
       "headings": {
         "anchorLinks": {
           "h1": false,
-          "h2": false,
-          "h3": false,
-          "h4": false,
+          "h2": true,
+          "h3": true,
+          "h4": true,
           "h5": false,
           "h6": false
         }
@@ -4706,7 +4655,7 @@ const _inlineRuntimeConfig = {
     "content": {
       "locales": [],
       "defaultLocale": "",
-      "integrity": 1736159668698,
+      "integrity": 1736174503912,
       "experimental": {
         "stripQueryParameters": false,
         "advanceQuery": false,
@@ -4720,16 +4669,16 @@ const _inlineRuntimeConfig = {
         "fields": []
       },
       "tags": {
-        "p": "p",
+        "p": "prose-p",
         "a": "prose-a",
         "blockquote": "prose-blockquote",
         "code-inline": "prose-code-inline",
         "code": "ProseCodeInline",
         "em": "prose-em",
-        "h1": "h1",
-        "h2": "h2",
-        "h3": "h3",
-        "h4": "h4",
+        "h1": "prose-h1",
+        "h2": "prose-h2",
+        "h3": "prose-h3",
+        "h4": "prose-h4",
         "h5": "prose-h5",
         "h6": "prose-h6",
         "hr": "prose-hr",
@@ -4752,7 +4701,12 @@ const _inlineRuntimeConfig = {
       "trailingSlash": false,
       "search": "",
       "contentHead": true,
-      "anchorLinks": false
+      "anchorLinks": {
+        "depth": 4,
+        "exclude": [
+          1
+        ]
+      }
     }
   },
   "github": {
@@ -4761,7 +4715,7 @@ const _inlineRuntimeConfig = {
   },
   "content": {
     "cacheVersion": 2,
-    "cacheIntegrity": "jBKzaRvwul",
+    "cacheIntegrity": "dLYeSFVwsx",
     "transformers": [],
     "base": "",
     "api": {
@@ -4787,16 +4741,16 @@ const _inlineRuntimeConfig = {
     "highlight": false,
     "markdown": {
       "tags": {
-        "p": "p",
+        "p": "prose-p",
         "a": "prose-a",
         "blockquote": "prose-blockquote",
         "code-inline": "prose-code-inline",
         "code": "ProseCodeInline",
         "em": "prose-em",
-        "h1": "h1",
-        "h2": "h2",
-        "h3": "h3",
-        "h4": "h4",
+        "h1": "prose-h1",
+        "h2": "prose-h2",
+        "h3": "prose-h3",
+        "h4": "prose-h4",
         "h5": "prose-h5",
         "h6": "prose-h6",
         "hr": "prose-hr",
@@ -4813,8 +4767,10 @@ const _inlineRuntimeConfig = {
         "tr": "prose-tr"
       },
       "anchorLinks": {
-        "depth": 0,
-        "exclude": []
+        "depth": 4,
+        "exclude": [
+          1
+        ]
       },
       "remarkPlugins": {},
       "rehypePlugins": {}
@@ -5005,7 +4961,7 @@ function defineDriver$1(factory) {
 }
 
 const DRIVER_NAME$3 = "memory";
-const memory = defineDriver$1(() => {
+const memory$1 = defineDriver$1(() => {
   const data = /* @__PURE__ */ new Map();
   return {
     name: DRIVER_NAME$3,
@@ -5042,7 +4998,7 @@ const memory = defineDriver$1(() => {
 
 function createStorage(options = {}) {
   const context = {
-    mounts: { "": options.driver || memory() },
+    mounts: { "": options.driver || memory$1() },
     mountpoints: [""],
     watching: false,
     watchListeners: [],
@@ -5439,67 +5395,67 @@ async function dispose(driver) {
 const _assets = {
   ["nitro:bundled:cache:content:content-index.json"]: {
     import: () => import('../raw/content-index.mjs').then(r => r.default || r),
-    meta: {"type":"application/json","etag":"\"38a-r+YEgneV6qWqpYA+ndmzMiqCJ1c\"","mtime":"2025-01-06T10:34:36.118Z"}
+    meta: {"type":"application/json","etag":"\"38a-r+YEgneV6qWqpYA+ndmzMiqCJ1c\"","mtime":"2025-01-06T14:41:54.352Z"}
   },
   ["nitro:bundled:cache:content:content-navigation.json"]: {
     import: () => import('../raw/content-navigation.mjs').then(r => r.default || r),
-    meta: {"type":"application/json","etag":"\"38a-hKk05oYjwMy1xu8FxvpdMvgBk9Q\"","mtime":"2025-01-06T10:34:36.118Z"}
+    meta: {"type":"application/json","etag":"\"38a-hKk05oYjwMy1xu8FxvpdMvgBk9Q\"","mtime":"2025-01-06T14:41:54.352Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:index.md"]: {
     import: () => import('../raw/index.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"248f-gDdDfFDpYdV1afNrpT0BX9PdLK0\"","mtime":"2025-01-06T10:34:36.119Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"248f-T8pf1xmJ1YT0yx2Fbj5tiduFlH0\"","mtime":"2025-01-06T14:41:54.352Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:index.md"]: {
     import: () => import('../raw/index2.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"24db-WHiKkjuZEnkKS8uC1XOucpPpAfc\"","mtime":"2025-01-06T10:34:36.119Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"24db-Oi77i/X2zj6/l7nuq61919sYV4Y\"","mtime":"2025-01-06T14:41:54.354Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:introduction.md"]: {
     import: () => import('../raw/introduction.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2664-tCyG3oJoPlIgx3XaffMSEolJzZ0\"","mtime":"2025-01-06T10:34:36.119Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2664-T8anpIpG67Mbp5nOVFcw8OEm4H8\"","mtime":"2025-01-06T14:41:54.354Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:animation.md"]: {
     import: () => import('../raw/animation.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"27e4-yd27lgyActJdC8IgisMTUD/cUu4\"","mtime":"2025-01-06T10:34:36.119Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"27e4-WW6eTw+TUnt0ERdw7TnvsiZQV04\"","mtime":"2025-01-06T14:41:54.353Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:applications.md"]: {
     import: () => import('../raw/applications.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"28b3-wzyvCqz4wxsqwxRg9oNfFxepoSo\"","mtime":"2025-01-06T10:34:36.119Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"28b3-ZvIZRdxBVIXP5uVQJIc1BY8vbj0\"","mtime":"2025-01-06T14:41:54.354Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:color.md"]: {
     import: () => import('../raw/color.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"4d23-ww6yFSxi3aJjwffmryk4ojpQsRk\"","mtime":"2025-01-06T10:34:36.119Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"4d23-66UkiREc85sqFGwR9HnTcf9RQPg\"","mtime":"2025-01-06T14:41:54.354Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:icons.md"]: {
     import: () => import('../raw/icons.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2e62-nNAT89/J38jtPM4cR797S1jqfTM\"","mtime":"2025-01-06T10:34:36.119Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2e62-nFkVT0gZelb8yibQN9l1kaXuMnc\"","mtime":"2025-01-06T14:41:54.354Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:illustration.md"]: {
     import: () => import('../raw/illustration.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"1ffe-mN5xqTu7VPmIRZrSe4eb/31zSTM\"","mtime":"2025-01-06T10:34:36.119Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"1ffe-GZ06IdgSALQjliwrgrApK8Ikhto\"","mtime":"2025-01-06T14:41:54.354Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:imagery.md"]: {
     import: () => import('../raw/imagery.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"29f7-BP2vAbO3GZt5WqnUIpE/n+YY/RE\"","mtime":"2025-01-06T10:34:36.119Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"29f7-EqfFK+Wm9T3vQHJYzUsTUSV4z1M\"","mtime":"2025-01-06T14:41:54.354Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:index.md"]: {
     import: () => import('../raw/index3.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"51f-reTaehTR37DotVDR71Z4ypMaZaQ\"","mtime":"2025-01-06T10:34:36.119Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"51f-wUhNNOPedHLBH3TiVaPcvQwwOtg\"","mtime":"2025-01-06T14:41:54.354Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:introduction.md"]: {
     import: () => import('../raw/introduction2.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"1e3f-MyJBRyzpk3veCyouza8F+lxjDo8\"","mtime":"2025-01-06T10:34:36.119Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"1e3f-KGSJ198Hv1EtzYHwl4nVs8S/LgE\"","mtime":"2025-01-06T14:41:54.354Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:layout.md"]: {
     import: () => import('../raw/layout.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2ee5-svHLaQms09FZvI/DIevJltAg0hY\"","mtime":"2025-01-06T10:34:36.119Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2ee5-cTEt3IxVQDwttY0SPjPGBJFFBHg\"","mtime":"2025-01-06T14:41:54.354Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:logo.md"]: {
     import: () => import('../raw/logo.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"3d14-zZIObMoUwqdIkt0BOLzKN1uyeOQ\"","mtime":"2025-01-06T10:34:36.119Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"3d14-DxmTeeMrDMKxeLhKoQcnUEYXM1w\"","mtime":"2025-01-06T14:41:54.354Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:typography.md"]: {
     import: () => import('../raw/typography.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"13f5-EQmqxqB1WY3JXTGyMW2mdOVHmbA\"","mtime":"2025-01-06T10:34:36.119Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"13f5-koWZ6QSaRpqSfXlTCeTv4lUX/LM\"","mtime":"2025-01-06T14:41:54.354Z"}
   }
 };
 
@@ -5746,7 +5702,7 @@ const overlay = defineDriver((options) => {
 });
 
 const DRIVER_NAME = "memory";
-const memoryDriver = defineDriver(() => {
+const memory = defineDriver(() => {
   const data = /* @__PURE__ */ new Map();
   return {
     name: DRIVER_NAME,
@@ -5791,7 +5747,7 @@ const bundledStorage = ["/cache/content"];
 for (const base of bundledStorage) {
   storage.mount(base, overlay({
     layers: [
-      memoryDriver(),
+      memory(),
       // TODO
       // prefixStorage(storage, base),
       prefixStorage(storage, 'assets:nitro:bundled:' + base)
@@ -6335,9 +6291,6 @@ getContext("nitro-app", {
   AsyncLocalStorage: void 0
 });
 
-function baseURL() {
-  return useRuntimeConfig().app.baseURL;
-}
 function buildAssetsDir() {
   return useRuntimeConfig().app.buildAssetsDir;
 }
@@ -6507,14 +6460,16 @@ const _aCmWfG = defineEventHandler(async (event) => {
 
 const _lazy_PTzqJm = () => import('../routes/api/_content/update.post.mjs');
 const _lazy_vvaCqd = () => import('../routes/api/auth/_..._.mjs');
+const _lazy_mUFuKq = () => import('../routes/api/auth/callback.get.mjs');
 const _lazy_puaK93 = () => import('../routes/api/auth/token.post.mjs');
 const _lazy_uJuhfu = () => import('../routes/api/raw-content.get.mjs');
 const _lazy_DVnWKP = () => import('../routes/api/raw-content.post.mjs');
-const _lazy_dCUbUO = () => import('../routes/renderer.mjs');
+const _lazy_dCUbUO = () => import('../build/renderer.mjs');
 
 const handlers = [
   { route: '/api/_content/update', handler: _lazy_PTzqJm, lazy: true, middleware: false, method: "post" },
   { route: '/api/auth/**', handler: _lazy_vvaCqd, lazy: true, middleware: false, method: undefined },
+  { route: '/api/auth/callback', handler: _lazy_mUFuKq, lazy: true, middleware: false, method: "get" },
   { route: '/api/auth/token', handler: _lazy_puaK93, lazy: true, middleware: false, method: "post" },
   { route: '/api/raw-content', handler: _lazy_uJuhfu, lazy: true, middleware: false, method: "get" },
   { route: '/api/raw-content', handler: _lazy_DVnWKP, lazy: true, middleware: false, method: "post" },
@@ -6523,7 +6478,7 @@ const handlers = [
   { route: '/api/_content/query/:qid/**:params', handler: _S1cjMb, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/query/:qid', handler: _S1cjMb, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/query', handler: _S1cjMb, lazy: false, middleware: false, method: "get" },
-  { route: '/api/_content/cache.1736159668698.json', handler: _C3POLs, lazy: false, middleware: false, method: "get" },
+  { route: '/api/_content/cache.1736174503912.json', handler: _C3POLs, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/navigation/:qid/**:params', handler: _aCmWfG, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/navigation/:qid', handler: _aCmWfG, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/navigation', handler: _aCmWfG, lazy: false, middleware: false, method: "get" },
@@ -6670,5 +6625,5 @@ const listener = function(req, res) {
   return handler(req, res);
 };
 
-export { $fetch$1 as $, getPreview as A, hash as B, pascalCase as C, baseURL as D, defuFn as E, klona as F, createDefu as G, parseQuery as H, getContext as I, createHooks as J, hasProtocol as K, isScriptProtocol as L, withQuery as M, sanitizeStatusCode as N, withTrailingSlash as O, toRouteMatcher as P, createRouter$1 as Q, withBase as R, parse as S, getRequestHeader as T, isEqual as U, getCookie as V, deleteCookie as W, createStorage as X, memoryDriver as Y, listener as Z, setCookie as a, defineRenderHandler as b, createError$1 as c, defineEventHandler as d, buildAssetsURL as e, getRouteRules as f, getQuery as g, getResponseStatus as h, getResponseStatusText as i, useNitroApp as j, kebabCase as k, defu as l, isRelative as m, destr as n, extname as o, publicAssetsURL as p, camelCase as q, readBody as r, sendRedirect as s, joinURL as t, useRuntimeConfig as u, isPreview as v, prefixStorage as w, useStorage as x, withLeadingSlash as y, withoutTrailingSlash as z };
+export { getRouteRules as A, getResponseStatus as B, getResponseStatusText as C, listener as D, setCookie as a, withoutTrailingSlash as b, createError$1 as c, defineEventHandler as d, defu as e, destr as f, getQuery as g, extname as h, isRelative as i, camelCase as j, kebabCase as k, joinURL as l, isPreview as m, prefixStorage as n, useStorage as o, pascalCase as p, getPreview as q, readBody as r, sendRedirect as s, hash as t, useRuntimeConfig as u, useNitroApp as v, withLeadingSlash as w, defineRenderHandler as x, buildAssetsURL as y, publicAssetsURL as z };
 //# sourceMappingURL=nitro.mjs.map

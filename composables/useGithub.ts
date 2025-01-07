@@ -2,6 +2,7 @@ import { Octokit } from "@octokit/rest";
 import { useRuntimeConfig, navigateTo } from "#app";
 import { ref, onMounted, computed } from "vue";
 
+// Define interfaces for all GitHub-related data structures
 export interface GitHubUser {
   login: string;
   avatar_url: string;
@@ -9,18 +10,58 @@ export interface GitHubUser {
   id: number;
 }
 
+export interface PullRequest {
+  number: number;
+  title: string;
+  user: GitHubUser;
+  html_url: string;
+  mergeable: boolean;
+  mergeable_state: string;
+  files?: Array<{
+    filename: string;
+    patch?: string;
+  }>;
+  base: {
+    ref: string;
+  };
+  head: {
+    ref: string;
+  };
+}
+
+export interface Commit {
+  sha: string;
+  commit: {
+    message: string;
+    author: {
+      name: string;
+      date: string;
+    };
+  };
+  author?: {
+    avatar_url: string;
+  };
+}
+
+// Main composable function for GitHub functionality
 export const useGithub = () => {
+  // Initialize runtime configuration and state
   const config = useRuntimeConfig();
   const user = ref<GitHubUser | null>(null);
-  const octokit = new Octokit({
-    auth: localStorage.getItem("github_token") || undefined,
-  });
   const loading = ref(false);
 
-  const login = () => {
+  // Initialize Octokit with stored token if available
+  const octokit = new Octokit({
+    auth: process.client ? localStorage.getItem("github_token") : undefined,
+  });
+
+  // Handle GitHub OAuth login
+  const initiateLogin = () => {
+    if (!process.client) return;
+
     const params = new URLSearchParams({
-      client_id: "4c1c42d1d9d1a5c0c887",
-      redirect_uri: "https://tiresomefanatic.github.io/heroechotemp/auth/callback",
+      client_id: config.public.githubClientId,
+      redirect_uri: `${config.public.siteUrl}/auth/callback`,
       scope: "user repo",
       response_type: "code",
       allow_signup: "true",
@@ -29,7 +70,17 @@ export const useGithub = () => {
     window.location.href = `https://github.com/login/oauth/authorize?${params}`;
   };
 
-  const getUser = async (): Promise<GitHubUser | null> => {
+  // Handle user logout
+  const handleLogout = () => {
+    if (!process.client) return;
+    localStorage.removeItem("github_token");
+    user.value = null;
+  };
+
+  // Fetch authenticated user data
+  const fetchUserData = async (): Promise<GitHubUser | null> => {
+    if (!process.client) return null;
+
     const token = localStorage.getItem("github_token");
     if (!token) return null;
 
@@ -46,18 +97,15 @@ export const useGithub = () => {
     }
   };
 
+  // Check if user is logged in
   const isLoggedIn = computed(() => {
+    if (!process.client) return false;
     return !!localStorage.getItem("github_token");
   });
 
-  const logout = () => {
-    localStorage.removeItem("github_token");
-    user.value = null;
-  };
-
-  const createFork = async (owner: string, repo: string) => {
-    const token = localStorage.getItem("github_token");
-    if (!token) return null;
+  // Create a fork of a repository
+  const createRepositoryFork = async (owner: string, repo: string) => {
+    if (!isLoggedIn.value) return null;
 
     try {
       const { data } = await octokit.rest.repos.createFork({
@@ -72,14 +120,14 @@ export const useGithub = () => {
     }
   };
 
-  const createBranch = async (
+  // Create a new branch
+  const createNewBranch = async (
     owner: string,
     repo: string,
     base: string,
     newBranch: string
   ) => {
-    const token = localStorage.getItem("github_token");
-    if (!token) return null;
+    if (!isLoggedIn.value) return null;
 
     try {
       const { data: ref } = await octokit.rest.git.getRef({
@@ -102,7 +150,8 @@ export const useGithub = () => {
     }
   };
 
-  const createPullRequest = async (
+  // Create a pull request
+  const createNewPullRequest = async (
     owner: string,
     repo: string,
     base: string,
@@ -110,8 +159,7 @@ export const useGithub = () => {
     title: string,
     body: string
   ) => {
-    const token = localStorage.getItem("github_token");
-    if (!token) return null;
+    if (!isLoggedIn.value) return null;
 
     try {
       const { data } = await octokit.rest.pulls.create({
@@ -129,7 +177,8 @@ export const useGithub = () => {
     }
   };
 
-  const saveFile = async (
+  // Save or update a file in the repository
+  const saveFileContent = async (
     owner: string,
     repo: string,
     path: string,
@@ -138,8 +187,7 @@ export const useGithub = () => {
     branch: string,
     sha?: string
   ) => {
-    const token = localStorage.getItem("github_token");
-    if (!token) return null;
+    if (!isLoggedIn.value) return null;
 
     try {
       const { data } = await octokit.rest.repos.createOrUpdateFileContents({
@@ -158,14 +206,14 @@ export const useGithub = () => {
     }
   };
 
-  const getFileContent = async (
+  // Get file content from repository
+  const fetchFileContent = async (
     owner: string,
     repo: string,
     path: string,
     ref?: string
   ) => {
-    const token = localStorage.getItem("github_token");
-    if (!token) return null;
+    if (!isLoggedIn.value) return null;
 
     try {
       const { data } = (await octokit.rest.repos.getContent({
@@ -185,17 +233,127 @@ export const useGithub = () => {
     }
   };
 
+  // Get list of pull requests
+  const fetchPullRequests = async () => {
+    if (!isLoggedIn.value) return [];
+
+    try {
+      const { data } = await octokit.rest.pulls.list({
+        owner: "tiresomefanatic",
+        repo: "heroechotemp",
+        state: "open",
+      });
+
+      const detailedPRs = await Promise.all(
+        data.map(async (pr) => {
+          const { data: prDetails } = await octokit.rest.pulls.get({
+            owner: "tiresomefanatic",
+            repo: "heroechotemp",
+            pull_number: pr.number,
+          });
+          return prDetails;
+        })
+      );
+
+      return detailedPRs as PullRequest[];
+    } catch (error) {
+      console.error("Error fetching pull requests:", error);
+      return [];
+    }
+  };
+
+  // Get list of commits
+  const fetchCommits = async () => {
+    if (!isLoggedIn.value) return [];
+
+    try {
+      const { data } = await octokit.rest.repos.listCommits({
+        owner: "tiresomefanatic",
+        repo: "heroechotemp",
+        per_page: 10,
+      });
+
+      return data as Commit[];
+    } catch (error) {
+      console.error("Error fetching commits:", error);
+      return [];
+    }
+  };
+
+  // Resolve merge conflicts
+  const resolveConflictInFile = async (
+    prNumber: number,
+    filePath: string,
+    resolution: "ours" | "theirs"
+  ) => {
+    if (!isLoggedIn.value) return null;
+
+    try {
+      const { data: pr } = await octokit.rest.pulls.get({
+        owner: "tiresomefanatic",
+        repo: "heroechotemp",
+        pull_number: prNumber,
+      });
+
+      const resolutionBranch = `conflict-resolution-${prNumber}-${Date.now()}`;
+
+      await createNewBranch(
+        "tiresomefanatic",
+        "heroechotemp",
+        pr.base.ref,
+        resolutionBranch
+      );
+
+      const content =
+        resolution === "ours"
+          ? await fetchFileContent(
+              "tiresomefanatic",
+              "heroechotemp",
+              filePath,
+              pr.base.ref
+            )
+          : await fetchFileContent(
+              "tiresomefanatic",
+              "heroechotemp",
+              filePath,
+              pr.head.ref
+            );
+
+      if (!content) {
+        throw new Error("Could not get file content");
+      }
+
+      await saveFileContent(
+        "tiresomefanatic",
+        "heroechotemp",
+        filePath,
+        content,
+        `Resolve conflict in ${filePath} using ${resolution} changes`,
+        resolutionBranch
+      );
+
+      return true;
+    } catch (error) {
+      console.error("Error resolving conflict:", error);
+      return null;
+    }
+  };
+
+  // Return all functions with explicit names to avoid TypeScript errors
   return {
-    login,
-    logout,
-    getUser,
+    login: initiateLogin,
+    logout: handleLogout,
+    getUser: fetchUserData,
     user,
     loading,
     isLoggedIn,
-    createFork,
-    createBranch,
-    createPullRequest,
-    saveFile,
-    getFileContent,
+    createFork: createRepositoryFork,
+    createBranch: createNewBranch,
+    createPullRequest: createNewPullRequest,
+    saveFile: saveFileContent,
+    getFileContent: fetchFileContent,
+    getPullRequests: fetchPullRequests,
+    getCommits: fetchCommits,
+    resolveConflict: resolveConflictInFile,
   };
 };

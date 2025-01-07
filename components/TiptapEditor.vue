@@ -1,351 +1,356 @@
-<template>
-  <div class="editor-wrapper">
-    <CollaborationSidebar v-if="isLoggedIn" />
-    <div class="editor-toolbar" v-if="isLoggedIn">
-      <div class="toolbar-left">
-        <span class="file-path">{{ filePath }}</span>
-        <span v-if="currentBranch" class="branch-name">
-          <svg class="branch-icon" viewBox="0 0 16 16" width="16" height="16">
-            <path fill="currentColor" d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"/>
-          </svg>
-          {{ currentBranch }}
-        </span>
-      </div>
-      <div class="toolbar-right">
-        <button 
-          class="toolbar-button" 
-          :class="{ loading: isSaving }"
-          :disabled="isSaving || !hasChanges"
-          @click="saveToDisk"
-        >
-          <span v-if="!isSaving">Save Changes</span>
-          <span v-else>Saving...</span>
-        </button>
-        <button 
-          v-if="hasChanges"
-          class="toolbar-button create-pr"
-          :disabled="isSaving"
-          @click="createPR"
-        >
-          Create PR
-        </button>
-      </div>
-    </div>
-    <div v-else class="login-prompt">
-      <p>Please sign in with GitHub to edit this file</p>
-      <button class="login-button" @click="login">
-        <svg class="github-icon" viewBox="0 0 24 24" width="16" height="16">
-          <path fill="currentColor" d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-        </svg>
-        Sign in with GitHub
-      </button>
-    </div>
-    <textarea
-      v-model="localContent"
-      class="markdown-editor"
-      @input="handleInput"
-      placeholder="Start writing..."
-      :disabled="!isLoggedIn || isSaving"
-    ></textarea>
-    
-    <!-- Image Upload Modal -->
-    <div v-if="showImageUpload" class="modal-overlay">
-      <div class="modal">
-        <h3>Upload Image</h3>
-        <div class="upload-area" @drop.prevent="handleDrop" @dragover.prevent>
-          <input 
-            type="file" 
-            ref="fileInput" 
-            @change="handleFileSelect" 
-            accept="image/*" 
-            class="file-input"
-          />
-          <p>Drag and drop an image or click to select</p>
-        </div>
-        <div class="modal-actions">
-          <button @click="showImageUpload = false" class="cancel-button">Cancel</button>
-          <button 
-            @click="uploadImage" 
-            :disabled="!selectedFile || isUploading" 
-            class="upload-button"
-          >
-            {{ isUploading ? 'Uploading...' : 'Upload' }}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
-import { useGithub } from '~/composables/useGithub'
-import { useToast } from '~/composables/useToast'
-import CollaborationSidebar from '~/components/CollaborationSidebar.vue'
+import { ref, watch, onMounted, onBeforeUnmount, computed } from "vue";
+import { useGithub } from "~/composables/useGithub";
+import { useToast } from "~/composables/useToast";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 
-interface GitHubUser {
-  login: string;
-  id: number;
-  avatar_url: string;
-  [key: string]: any;
+// Define comprehensive interfaces for our component
+interface Props {
+  content: string;
+  filePath: string;
+  branch?: string;
+  autosaveInterval?: number;
+  previewEnabled?: boolean;
 }
 
-// Composables and utilities
-const { showToast } = useToast();
-const { saveFile, getFileContent } = useGithub();
+interface VersionEntry {
+  timestamp: Date;
+  content: string;
+  description?: string;
+}
 
-// File upload state
-const selectedFile = ref<File | null>(null)
-const isUploading = ref(false)
-const showImageUpload = ref(false)
+interface Emits {
+  (event: "update:content", content: string): void;
+  (event: "save", content: string): void;
+  (event: "error", error: Error): void;
+  (event: "upload:start"): void;
+  (event: "upload:complete", url: string): void;
+  (event: "upload:error", error: Error): void;
+}
 
-const props = defineProps({
-  content: {
-    type: String,
-    default: ''
-  },
-  filePath: {
-    type: String,
-    required: true
+// Set default props
+const props = withDefaults(defineProps<Props>(), {
+  autosaveInterval: 30000,
+  previewEnabled: true,
+});
+
+const emit = defineEmits<Emits>();
+
+const handleInput = (event: Event) => {
+  const target = event.target as HTMLTextAreaElement;
+  if (target) {
+    emit("update:content", target.value);
   }
-})
+};
 
-const emit = defineEmits(['update:content', 'save'])
+// Initialize state management
+const localContent = ref(props.content);
+const originalContent = ref(props.content);
+const isSaving = ref(false);
+const isUploading = ref(false);
+const currentBranch = ref(props.branch || "");
+const previewMode = ref(false);
+const versionHistory = ref<VersionEntry[]>([]);
+const lastSavedVersion = ref<string | null>(null);
 
-// State
-const localContent = ref(props.content)
-const originalContent = ref(props.content)
-const isSaving = ref(false)
-const currentBranch = ref('')
-const user = ref<GitHubUser | null>(null)
+// Initialize composables
+const { showToast } = useToast();
+const { saveFile, getFileContent, isLoggedIn, login } = useGithub();
 
-// Composables
-const { 
-  getUser, 
-  login, 
-  createFork, 
-  createBranch, 
-  createPullRequest,
-} = useGithub()
+// Computed properties
+const hasChanges = computed(() => localContent.value !== originalContent.value);
 
-// Computed
-const isLoggedIn = computed(() => !!user.value)
-const hasChanges = computed(() => localContent.value !== originalContent.value)
+const previewContent = ref('');
 
-// Methods
-const handleInput = () => {
-  emit('update:content', localContent.value)
-}
+// Update preview content when local content changes
+watch(localContent, async (newContent) => {
+  const rawHtml = await marked(newContent);
+  previewContent.value = DOMPurify.sanitize(rawHtml);
+});
 
-const generateBranchName = () => {
-  const timestamp = new Date().getTime()
-  const randomStr = Math.random().toString(36).substring(2, 8)
-  return `update-${props.filePath.split('/').pop()}-${timestamp}-${randomStr}`
-}
+const canRevert = computed(() => versionHistory.value.length > 0);
 
-const saveToDisk = async () => {
-  if (!hasChanges.value || isSaving.value) return;
-  
-  isSaving.value = true;
-  const { showToast } = useToast();
-  const { saveFile } = useGithub();
+// Content loading function
+const loadContent = async () => {
+  if (!props.filePath) {
+    showToast({
+      title: "Error",
+      message: "No file path provided",
+      type: "error",
+    });
+    return;
+  }
 
   try {
-    const timestamp = new Date().getTime();
-    const randomStr = Math.random().toString(36).substring(2, 8);
-    const branchName = `update-${props.filePath.split('/').pop()}-${timestamp}-${randomStr}`;
+    const content = await getFileContent(
+      "tiresomefanatic",
+      "heroechotemp",
+      props.filePath,
+      props.branch
+    );
 
-    const result = await saveFileToGitHub(props.filePath, localContent.value);
+    if (content) {
+      localContent.value = content;
+      originalContent.value = content;
+      lastSavedVersion.value = content;
 
-    if (result) {
-      showToast('Content saved successfully', 'success');
-      originalContent.value = localContent.value;
+      versionHistory.value.push({
+        timestamp: new Date(),
+        content: content,
+        description: "Initial version",
+      });
     } else {
-      showToast('Failed to save content', 'error');
+      showToast({
+        title: "Warning",
+        message: "No content found for this file",
+        type: "warning",
+      });
     }
   } catch (error) {
-    console.error('Error saving content:', error);
-    showToast('Failed to save content', 'error');
+    console.error("Error loading content:", error);
+    showToast({
+      title: "Error",
+      message: "Failed to load content. Please try again.",
+      type: "error",
+    });
+    emit("error", error as Error);
+  }
+};
+
+// Save content function
+const saveToDisk = async () => {
+  if (!hasChanges.value || isSaving.value) {
+    return;
+  }
+
+  if (!props.filePath) {
+    showToast({
+      title: "Error",
+      message: "No file path provided",
+      type: "error",
+    });
+    return;
+  }
+
+  isSaving.value = true;
+
+  try {
+    const branchName = currentBranch.value || generateBranchName();
+
+    const result = await saveFile(
+      "tiresomefanatic",
+      "heroechotemp",
+      props.filePath,
+      localContent.value,
+      `Update ${props.filePath}`,
+      branchName
+    );
+
+    if (result) {
+      currentBranch.value = branchName;
+      originalContent.value = localContent.value;
+      lastSavedVersion.value = localContent.value;
+
+      versionHistory.value.push({
+        timestamp: new Date(),
+        content: localContent.value,
+        description: "Manual save",
+      });
+
+      if (versionHistory.value.length > 10) {
+        versionHistory.value.shift();
+      }
+
+      showToast({
+        title: "Success",
+        message: "Content saved successfully",
+        type: "success",
+      });
+
+      emit("save", localContent.value);
+    } else {
+      throw new Error("Failed to save content");
+    }
+  } catch (error) {
+    console.error("Error saving content:", error);
+    showToast({
+      title: "Error",
+      message: "Failed to save content. Please try again.",
+      type: "error",
+    });
+    emit("error", error as Error);
   } finally {
     isSaving.value = false;
   }
 };
 
-const saveFileToGitHub = async (path: string, content: string) => {
-  try {
-    const timestamp = new Date().getTime();
-    const randomStr = Math.random().toString(36).substring(2, 8);
-    const branchName = `update-${path.split('/').pop()}-${timestamp}-${randomStr}`;
+// Autosave functionality
+let autoSaveTimeout: NodeJS.Timeout;
+const setupAutoSave = () => {
+  clearTimeout(autoSaveTimeout);
+  autoSaveTimeout = setTimeout(async () => {
+    if (hasChanges.value) {
+      versionHistory.value.push({
+        timestamp: new Date(),
+        content: localContent.value,
+        description: "Auto-saved version",
+      });
 
-    const result = await saveFile(
-      'tiresomefanatic',  // owner
-      'heroechotemp',     // repo
-      path,               // path
-      content,            // content
-      `Update ${path}`,   // commit message
-      branchName         // branch
-    );
+      if (versionHistory.value.length > 10) {
+        versionHistory.value.shift();
+      }
 
-    if (result) {
-      currentBranch.value = branchName;
-      showToast('File saved successfully', 'success');
-      return true;
-    } else {
-      showToast('Failed to save file', 'error');
-      return false;
+      await saveToDisk();
     }
-  } catch (error) {
-    console.error('Error saving file:', error);
-    showToast('Failed to save file', 'error');
-    return false;
+  }, props.autosaveInterval);
+};
+
+// Generate unique branch name
+const generateBranchName = () => {
+  const timestamp = new Date().getTime();
+  const randomStr = Math.random().toString(36).substring(2, 8);
+  const fileName = props.filePath.split("/").pop();
+  return `update-${fileName}-${timestamp}-${randomStr}`;
+};
+
+// Handle markdown shortcuts
+const handleKeyboard = (e: KeyboardEvent) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+    e.preventDefault();
+    saveToDisk();
+  }
+
+  if ((e.ctrlKey || e.metaKey) && e.key === "p") {
+    e.preventDefault();
+    previewMode.value = !previewMode.value;
   }
 };
 
-const createPR = async () => {
-  if (!currentBranch.value) return;
-  const { showToast } = useToast();
-  const { createPullRequest } = useGithub();
-
-  try {
-    const result = await createPullRequest(
-      'tiresomefanatic',
-      'heroechotemp',
-      'main',
-      currentBranch.value,
-      `Update ${props.filePath}`,
-      `This PR updates the content of ${props.filePath}`
-    );
-
-    if (result) {
-      showToast('Pull request created successfully', 'success');
-    } else {
-      showToast('Failed to create pull request', 'error');
-    }
-  } catch (error) {
-    console.error('Error creating PR:', error);
-    showToast('Failed to create pull request', 'error');
+// Version control
+const revertToVersion = (index: number) => {
+  const version = versionHistory.value[index];
+  if (version) {
+    localContent.value = version.content;
+    showToast({
+      title: "Success",
+      message: "Reverted to previous version",
+      type: "success",
+    });
   }
-}
+};
 
-// Image upload handlers
-const handleDrop = (e: DragEvent) => {
-  const file = e.dataTransfer?.files[0]
-  if (file && file.type.startsWith('image/')) {
-    selectedFile.value = file
+// Watch for content changes
+watch(
+  () => localContent.value,
+  () => {
+    setupAutoSave();
+    emit("update:content", localContent.value);
   }
-}
+);
 
-const handleFileSelect = (e: Event) => {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (file) {
-    selectedFile.value = file
-  }
-}
-
-const uploadImage = async () => {
-  if (!selectedFile.value) {
-    showToast('Please select a file first', 'error')
-    return
-  }
-
-  isUploading.value = true;
-
-  if (!selectedFile.value) {
-    isUploading.value = false;
-    return;
-  }
-
-  try {
-    if (!selectedFile.value) {
-      console.error('No file selected');
-      return;
-    }
-
-    const file = selectedFile.value; // Store reference to avoid null issues
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    
-    reader.onload = async () => {
-      const base64Data = reader.result as string;
-      const base64Content = base64Data.split(',')[1];
-      const timestamp = new Date().getTime();
-      const fileName = `${file.name}-${timestamp}`;
-      const filePath = `images/${fileName}`;
-
-      const result = await saveFile(
-        'tiresomefanatic',
-        'heroechotemp',
-        filePath,
-        base64Content,
-        `Upload image ${fileName}`,
-        'main'
-      );
-
-      if (result?.content?.download_url) {
-        const imageMarkdown = `![${fileName}](${result.content.download_url})`;
-        const textarea = document.querySelector('.markdown-editor') as HTMLTextAreaElement;
-        const cursorPos = textarea.selectionStart;
-        localContent.value = 
-          localContent.value.slice(0, cursorPos) + 
-          imageMarkdown + 
-          localContent.value.slice(cursorPos);
-        
-        showImageUpload.value = false;
-        showToast('Image uploaded successfully!', 'success');
-      } else {
-        showToast('Failed to upload image', 'error');
-      }
-    };
-  } catch (error) {
-    console.error('Error uploading image:', error);
-    showToast('Failed to upload image', 'error');
-  } finally {
-    isUploading.value = false;
-  }
-}
-
-// Keyboard shortcuts
-const handleKeyboard = (e: KeyboardEvent) => {
-  // Save: Ctrl/Cmd + S
-  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-    e.preventDefault()
-    saveToDisk()
-  }
-  
-  // Image upload: Ctrl/Cmd + Shift + I
-  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') {
-    e.preventDefault()
-    showImageUpload.value = true
-  }
-}
-
-// Lifecycle
+// Lifecycle hooks
 onMounted(async () => {
-  window.addEventListener('keydown', handleKeyboard)
-  const userData = await getUser()
-  if (userData) {
-    user.value = userData
-  }
-  
-  // Load initial content
-  try {
-    const content = await getFileContent('tiresomefanatic', 'heroechotemp', props.filePath)
-    if (content) {
-      localContent.value = content
-      originalContent.value = content
-    } else {
-      showToast('No content found for this file.', 'error')
-    }
-  } catch (error) {
-    console.error('Error loading content:', error)
-    showToast('Failed to load content. Please try again.', 'error')
-  }
-})
+  window.addEventListener("keydown", handleKeyboard);
+  await loadContent();
+});
 
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyboard)
-})
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", handleKeyboard);
+  clearTimeout(autoSaveTimeout);
+});
 </script>
+
+<template>
+  <div class="editor-wrapper">
+    <!-- Login prompt -->
+    <div v-if="!isLoggedIn" class="login-prompt">
+      <p class="login-message">Please sign in with GitHub to edit this file</p>
+      <button @click="login" class="login-button">
+        <svg class="github-icon" viewBox="0 0 24 24" width="16" height="16">
+          <path
+            fill="currentColor"
+            d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
+          />
+        </svg>
+        Sign in with GitHub
+      </button>
+    </div>
+
+    <!-- Editor toolbar -->
+    <div v-else class="editor-toolbar">
+      <div class="toolbar-left">
+        <span class="file-path">{{ filePath }}</span>
+        <span v-if="currentBranch" class="branch-name">
+          <svg class="branch-icon" viewBox="0 0 16 16" width="16" height="16">
+            <path
+              fill="currentColor"
+              d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0Z"
+            />
+          </svg>
+          {{ currentBranch }}
+        </span>
+      </div>
+
+      <div class="toolbar-right">
+        <button
+          v-if="previewEnabled"
+          class="toolbar-button"
+          :class="{ active: previewMode }"
+          @click="previewMode = !previewMode"
+        >
+          {{ previewMode ? "Edit" : "Preview" }}
+        </button>
+
+        <button
+          class="toolbar-button"
+          :class="{ loading: isSaving }"
+          :disabled="isSaving || !hasChanges"
+          @click="saveToDisk"
+        >
+          <span v-if="isSaving">Saving...</span>
+          <span v-else>{{ hasChanges ? "Save Changes" : "Saved" }}</span>
+        </button>
+
+        <div class="version-dropdown" v-if="canRevert">
+          <button class="toolbar-button">History</button>
+          <div class="version-list">
+            <button
+              v-for="(version, index) in versionHistory"
+              :key="index"
+              class="version-item"
+              @click="revertToVersion(index)"
+            >
+              {{ new Date(version.timestamp).toLocaleTimeString() }}
+              <span class="version-description">{{ version.description }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Editor content -->
+    <div class="editor-content">
+      <textarea
+        v-if="!previewMode"
+        v-model="localContent"
+        class="markdown-editor"
+        :class="{ 'has-changes': hasChanges }"
+        @input="handleInput"
+        placeholder="Start writing..."
+        :disabled="!isLoggedIn || isSaving"
+        aria-label="Markdown editor"
+      ></textarea>
+
+      <div v-else class="markdown-preview" v-html="previewContent"></div>
+    </div>
+
+    <!-- Unsaved changes warning -->
+    <div v-if="hasChanges" class="unsaved-warning" role="alert">
+      You have unsaved changes. Press Ctrl/Cmd + S to save.
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .editor-wrapper {
@@ -373,7 +378,7 @@ onUnmounted(() => {
 }
 
 .file-path {
-  font-family: 'Monaco', monospace;
+  font-family: "Monaco", monospace;
 }
 
 .branch-name {
@@ -418,7 +423,7 @@ onUnmounted(() => {
 }
 
 .toolbar-button.loading::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -475,7 +480,8 @@ onUnmounted(() => {
   flex: 1;
   width: 100%;
   padding: 32px;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", "Consolas", "source-code-pro",
+    monospace;
   font-size: 14px;
   line-height: 1.5;
   color: #333;
