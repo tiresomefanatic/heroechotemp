@@ -1,13 +1,13 @@
-import { d as defineEventHandler, r as readBody, c as createError } from '../../nitro/nitro.mjs';
+import process from 'node:process';globalThis._importMeta_=globalThis._importMeta_||{url:"file:///_entry.js",env:process.env};import { d as defineEventHandler, r as readBody, c as createError } from '../../nitro/nitro.mjs';
 import { writeFileSync } from 'fs';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import 'node:http';
 import 'node:https';
 import 'node:fs';
 import 'node:path';
 import '@iconify/utils';
 import 'consola/core';
-import 'node:module';
 
 const rawContent_post = defineEventHandler(async (event) => {
   const body = await readBody(event);
@@ -19,7 +19,11 @@ const rawContent_post = defineEventHandler(async (event) => {
     });
   }
   try {
-    const fullPath = resolve(process.cwd(), "content", path);
+    const __filename = fileURLToPath(globalThis._importMeta_.url);
+    const projectRoot = resolve(dirname(__filename), "../../..");
+    const normalizedPath = path.startsWith("content/") ? path.slice(8) : path;
+    const fullPath = resolve(projectRoot, "content", normalizedPath);
+    console.log("Writing file to:", fullPath);
     writeFileSync(fullPath, content, "utf-8");
     return { success: true };
   } catch (error) {

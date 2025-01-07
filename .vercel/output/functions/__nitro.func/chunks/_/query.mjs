@@ -5,7 +5,6 @@ import 'node:fs';
 import 'node:path';
 import '@iconify/utils';
 import 'consola/core';
-import 'node:module';
 
 function jsonParse(value) {
   return JSON.parse(value, regExpReviver);

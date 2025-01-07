@@ -7,7 +7,6 @@ import 'node:fs';
 import 'node:path';
 import '@iconify/utils';
 import 'consola/core';
-import 'node:module';
 
 function createNav(contents, configs) {
   const { navigation } = useRuntimeConfig().public.content;

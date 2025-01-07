@@ -1,10 +1,9 @@
-import process from 'node:process';globalThis._importMeta_=globalThis._importMeta_||{url:"file:///_entry.js",env:process.env};import http from 'node:http';
+import http from 'node:http';
 import https from 'node:https';
 import { promises, existsSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { getIcons } from '@iconify/utils';
 import { createConsola as createConsola$1 } from 'consola/core';
-import { createRequire } from 'node:module';
 
 const suspectProtoRx = /"(?:_|\\u0{2}5[Ff]){2}(?:p|\\u0{2}70)(?:r|\\u0{2}72)(?:o|\\u0{2}6[Ff])(?:t|\\u0{2}74)(?:o|\\u0{2}6[Ff])(?:_|\\u0{2}5[Ff]){2}"\s*:/;
 const suspectConstructorRx = /"(?:c|\\u0063)(?:o|\\u006[Ff])(?:n|\\u006[Ee])(?:s|\\u0073)(?:t|\\u0074)(?:r|\\u0072)(?:u|\\u0075)(?:c|\\u0063)(?:t|\\u0074)(?:o|\\u006[Ff])(?:r|\\u0072)"\s*:/;
@@ -4622,7 +4621,7 @@ function _expandFromEnv(value) {
 const _inlineRuntimeConfig = {
   "app": {
     "baseURL": "/",
-    "buildId": "fa73eaec-ef08-428c-8d17-1f811b0e4025",
+    "buildId": "77093ff6-8237-4d60-8fc1-97696640e81c",
     "buildAssetsDir": "/_nuxt/",
     "cdnURL": ""
   },
@@ -4697,7 +4696,7 @@ const _inlineRuntimeConfig = {
     "content": {
       "locales": [],
       "defaultLocale": "",
-      "integrity": 1736271090946,
+      "integrity": 1736293395057,
       "experimental": {
         "stripQueryParameters": false,
         "advanceQuery": false,
@@ -5448,79 +5447,79 @@ async function dispose(driver) {
 const _assets = {
   ["nitro:bundled:cache:content:content-index.json"]: {
     import: () => import('../raw/content-index.mjs').then(r => r.default || r),
-    meta: {"type":"application/json","etag":"\"414-lrnKqN4EUhQxfStD+HT3J8uQccE\"","mtime":"2025-01-07T17:31:42.009Z"}
+    meta: {"type":"application/json","etag":"\"414-lrnKqN4EUhQxfStD+HT3J8uQccE\"","mtime":"2025-01-07T23:43:22.127Z"}
   },
   ["nitro:bundled:cache:content:content-navigation.json"]: {
     import: () => import('../raw/content-navigation.mjs').then(r => r.default || r),
-    meta: {"type":"application/json","etag":"\"414-Nw/6vwMNoxEj2REae16AKGy8BoE\"","mtime":"2025-01-07T17:31:42.009Z"}
+    meta: {"type":"application/json","etag":"\"414-Nw/6vwMNoxEj2REae16AKGy8BoE\"","mtime":"2025-01-07T23:43:22.127Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:_dir.yml"]: {
     import: () => import('../raw/_dir.mjs').then(r => r.default || r),
-    meta: {"type":"text/yaml; charset=utf-8","etag":"\"106-omMCjDIMWg5srljVxzwVfsy7GAQ\"","mtime":"2025-01-07T17:31:42.011Z"}
+    meta: {"type":"text/yaml; charset=utf-8","etag":"\"106-omMCjDIMWg5srljVxzwVfsy7GAQ\"","mtime":"2025-01-07T23:43:22.127Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:index.md"]: {
     import: () => import('../raw/index.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2504-KNM1cwn0lfTlmNwDR8w3lw0HZ08\"","mtime":"2025-01-07T17:31:42.011Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2504-KNM1cwn0lfTlmNwDR8w3lw0HZ08\"","mtime":"2025-01-07T23:43:22.127Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:_dir.yml"]: {
     import: () => import('../raw/_dir2.mjs').then(r => r.default || r),
-    meta: {"type":"text/yaml; charset=utf-8","etag":"\"1ba-CVhblx/irjvXUtJOdlPj7t2egP8\"","mtime":"2025-01-07T17:31:42.012Z"}
+    meta: {"type":"text/yaml; charset=utf-8","etag":"\"1ba-CVhblx/irjvXUtJOdlPj7t2egP8\"","mtime":"2025-01-07T23:43:22.127Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:index.md"]: {
     import: () => import('../raw/index2.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2251-JqCfe89AUTz3/bbEDfkgEa/YGiY\"","mtime":"2025-01-07T17:31:42.012Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2251-JqCfe89AUTz3/bbEDfkgEa/YGiY\"","mtime":"2025-01-07T23:43:22.128Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:introduction.md"]: {
     import: () => import('../raw/introduction.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"33ff-rMF1TolRHaR2gxk5LljIVupeImM\"","mtime":"2025-01-07T17:31:42.012Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"33ff-rMF1TolRHaR2gxk5LljIVupeImM\"","mtime":"2025-01-07T23:43:22.128Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:_dir.yaml"]: {
     import: () => import('../raw/_dir3.mjs').then(r => r.default || r),
-    meta: {"type":"text/yaml; charset=utf-8","etag":"\"368-0g1dbJgM7UT51AuWMdzCeUOtf4w\"","mtime":"2025-01-07T17:31:42.012Z"}
+    meta: {"type":"text/yaml; charset=utf-8","etag":"\"368-0g1dbJgM7UT51AuWMdzCeUOtf4w\"","mtime":"2025-01-07T23:43:22.128Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:animation.md"]: {
     import: () => import('../raw/animation.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2c69-1vJ0qgNrGwSP2h1cKTQe7ggW2Mc\"","mtime":"2025-01-07T17:31:42.012Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2c69-1vJ0qgNrGwSP2h1cKTQe7ggW2Mc\"","mtime":"2025-01-07T23:43:22.129Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:applications.md"]: {
     import: () => import('../raw/applications.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2d4c-/RuLTMk+yZ8QX9YiLSDiktofEGc\"","mtime":"2025-01-07T17:31:42.012Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2d4c-/RuLTMk+yZ8QX9YiLSDiktofEGc\"","mtime":"2025-01-07T23:43:22.129Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:color.md"]: {
     import: () => import('../raw/color.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"54a1-1oBvUjRfrvBHWUdU33+lTGL8RIY\"","mtime":"2025-01-07T17:31:42.011Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"54a1-1oBvUjRfrvBHWUdU33+lTGL8RIY\"","mtime":"2025-01-07T23:43:22.130Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:icons.md"]: {
     import: () => import('../raw/icons.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"322c-foWqdyrMPq4lLWOpd6noaKZ6YpE\"","mtime":"2025-01-07T17:31:42.012Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"322c-foWqdyrMPq4lLWOpd6noaKZ6YpE\"","mtime":"2025-01-07T23:43:22.128Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:illustration.md"]: {
     import: () => import('../raw/illustration.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"24bd-mZu+tYEFwJqAFit6KgeExnW73GU\"","mtime":"2025-01-07T17:31:42.012Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"24bd-mZu+tYEFwJqAFit6KgeExnW73GU\"","mtime":"2025-01-07T23:43:22.129Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:imagery.md"]: {
     import: () => import('../raw/imagery.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2f53-kmUJe/L/r1KVTM6udiNT3uXDTLQ\"","mtime":"2025-01-07T17:31:42.012Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2f53-kmUJe/L/r1KVTM6udiNT3uXDTLQ\"","mtime":"2025-01-07T23:43:22.130Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:index.md"]: {
     import: () => import('../raw/index3.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"6a5-zUlrUC0aXoF693I5TALHytqgsBU\"","mtime":"2025-01-07T17:31:42.013Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"6a5-zUlrUC0aXoF693I5TALHytqgsBU\"","mtime":"2025-01-07T23:43:22.128Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:introduction.md"]: {
     import: () => import('../raw/introduction2.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"24e3-qJQXnYm319r69AV0ytdYMUS1cfY\"","mtime":"2025-01-07T17:31:42.012Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"24e3-qJQXnYm319r69AV0ytdYMUS1cfY\"","mtime":"2025-01-07T23:43:22.129Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:layout.md"]: {
     import: () => import('../raw/layout.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"32c7-D1SLeFxA41PUHAMS1wcHX3Q4XHM\"","mtime":"2025-01-07T17:31:42.012Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"32c7-D1SLeFxA41PUHAMS1wcHX3Q4XHM\"","mtime":"2025-01-07T23:43:22.129Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:logo.md"]: {
     import: () => import('../raw/logo.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"4743-sGK/QQyXksFUe60uYJ9a9iV0I/s\"","mtime":"2025-01-07T17:31:42.012Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"4743-sGK/QQyXksFUe60uYJ9a9iV0I/s\"","mtime":"2025-01-07T23:43:22.127Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:typography.md"]: {
     import: () => import('../raw/typography.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"1ed6-ILAiGmzvRdtqJEUdJAl0K8siaIc\"","mtime":"2025-01-07T17:31:42.012Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"1ed6-ILAiGmzvRdtqJEUdJAl0K8siaIc\"","mtime":"2025-01-07T23:43:22.129Z"}
   }
 };
 
@@ -6371,10 +6370,8 @@ function publicAssetsURL(...path) {
   return path.length ? joinRelativeURL(publicBase, ...path) : publicBase;
 }
 
-const require = createRequire(globalThis._importMeta_.url);
-
 const collections = {
-  'heroicons': () => require('@iconify-json/heroicons/icons.json'),
+  'heroicons': () => import('../_/icons.mjs').then(m => m.default),
 };
 
 const DEFAULT_ENDPOINT = "https://api.iconify.design";
@@ -6532,6 +6529,7 @@ const _lazy_mUFuKq = () => import('../routes/api/auth/callback.get.mjs');
 const _lazy_puaK93 = () => import('../routes/api/auth/token.post.mjs');
 const _lazy_uJuhfu = () => import('../routes/api/raw-content.get.mjs');
 const _lazy_DVnWKP = () => import('../routes/api/raw-content.post.mjs');
+const _lazy_unnN8z = () => import('../routes/api/raw-content.mjs');
 const _lazy_dCUbUO = () => import('../routes/renderer.mjs');
 
 const handlers = [
@@ -6541,12 +6539,13 @@ const handlers = [
   { route: '/api/auth/token', handler: _lazy_puaK93, lazy: true, middleware: false, method: "post" },
   { route: '/api/raw-content', handler: _lazy_uJuhfu, lazy: true, middleware: false, method: "get" },
   { route: '/api/raw-content', handler: _lazy_DVnWKP, lazy: true, middleware: false, method: "post" },
+  { route: '/api/raw-content', handler: _lazy_unnN8z, lazy: true, middleware: false, method: undefined },
   { route: '/__nuxt_error', handler: _lazy_dCUbUO, lazy: true, middleware: false, method: undefined },
   { route: '/api/_nuxt_icon/:collection', handler: _Ka6fbh, lazy: false, middleware: false, method: undefined },
   { route: '/api/_content/query/:qid/**:params', handler: _S1cjMb, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/query/:qid', handler: _S1cjMb, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/query', handler: _S1cjMb, lazy: false, middleware: false, method: "get" },
-  { route: '/api/_content/cache.1736271090946.json', handler: _C3POLs, lazy: false, middleware: false, method: "get" },
+  { route: '/api/_content/cache.1736293395057.json', handler: _C3POLs, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/navigation/:qid/**:params', handler: _aCmWfG, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/navigation/:qid', handler: _aCmWfG, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/navigation', handler: _aCmWfG, lazy: false, middleware: false, method: "get" },

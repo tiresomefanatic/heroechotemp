@@ -1,3 +1,4 @@
+import { defineEventHandler, getQuery, createError } from "h3";
 import { promises as fs } from "fs";
 import { resolve, join } from "path";
 import { fileURLToPath } from "url";
@@ -10,7 +11,6 @@ export default defineEventHandler(async (event) => {
   console.log("Raw content request for path:", path);
 
   if (!path) {
-    console.error("No path provided");
     throw createError({
       statusCode: 400,
       message: "Path parameter is required",
@@ -35,12 +35,11 @@ export default defineEventHandler(async (event) => {
     const contentPath = join(projectRoot, 'content', normalizedPath);
     console.log("Full content path:", contentPath);
 
-    // Check if file exists before trying to access
-    const exists = await fs.stat(contentPath).then(() => true).catch(() => false);
-    console.log("File exists:", exists);
-
-    if (!exists) {
-      console.error("File does not exist:", contentPath);
+    // Verify the path exists
+    try {
+      await fs.access(contentPath);
+    } catch (err) {
+      console.error("File not accessible:", contentPath);
       throw createError({
         statusCode: 404,
         message: `File not found: ${normalizedPath}`,
@@ -49,9 +48,6 @@ export default defineEventHandler(async (event) => {
 
     // Verify the path is within the content directory
     const contentDir = resolve(projectRoot, 'content');
-    console.log("Content directory:", contentDir);
-    console.log("Path starts with content dir:", contentPath.startsWith(contentDir));
-
     if (!contentPath.startsWith(contentDir)) {
       console.error("Path traversal attempt:", contentPath);
       throw createError({

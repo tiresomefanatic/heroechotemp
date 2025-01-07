@@ -1,12 +1,13 @@
+// [...slug].vue
 <template>
   <div class="page-wrapper">
-    <div v-if="pending">Loading...</div>
-    <div v-else-if="error">{{ error }}</div>
-    <ClientOnly v-else>
+    <ClientOnly>
       <div v-if="data">
         <header class="site-header">
           <div class="header-content">
-            <NuxtLink to="/" class="logo">ECHO<span class="logo-dot">•</span></NuxtLink>
+            <NuxtLink to="/" class="logo"
+              >ECHO<span class="logo-dot">•</span></NuxtLink
+            >
             <nav class="main-nav">
               <NuxtLink to="/design" class="active">Design</NuxtLink>
               <NuxtLink to="/develop">Develop</NuxtLink>
@@ -25,24 +26,34 @@
           </aside>
           <div class="main-content">
             <div class="content-header">
-              <button 
-                @click="toggleEdit"
-                class="edit-button"
-              >
-                {{ isEditing ? 'Preview' : 'Edit' }}
-              </button>
+              <ClientOnly>
+                <button
+                  v-if="!isEditing"
+                  @click="handleEditClick"
+                  class="edit-button"
+                >
+                  Edit
+                </button>
+                <button v-else @click="exitEditor" class="edit-button">
+                  Exit
+                </button>
+              </ClientOnly>
             </div>
 
-            <div v-if="isEditing" class="editor-container">
-              <TiptapEditor
-                :content="editorContent"
-                @update:content="updateContent"
-                @save="saveContent"
-              />
-            </div>
-            <div v-else class="prose">
-              <ContentRenderer :value="data" />
-            </div>
+            <ClientOnly>
+              <div v-if="isEditing" class="editor-container">
+                <TiptapEditor
+                  :content="editorContent"
+                  :filePath="contentPath"
+                  @update:content="handleContentChange"
+                  @save="handleSave"
+                  @error="handleEditorError"
+                />
+              </div>
+              <div v-else class="prose">
+                <ContentRenderer :value="data" />
+              </div>
+            </ClientOnly>
           </div>
         </div>
       </div>
@@ -50,113 +61,183 @@
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-import { useRoute } from 'vue-router'
-import DesignSidebar from '~/components/DesignSidebar.vue'
+<script setup lang="ts">
+import { ref, computed, watch } from "vue";
+import { useRoute } from "vue-router";
+import { queryContent } from "#imports";
+import { useGithub } from "~/composables/useGithub";
+import { useToast } from "~/composables/useToast";
+import TiptapEditor from "~/components/TiptapEditor.vue";
+import DesignSidebar from "~/components/DesignSidebar.vue";
 
-const route = useRoute()
-const slug = route.params.slug || []
-const path = Array.isArray(slug) ? slug.join('/') : slug
+const route = useRoute();
+const slug = route.params.slug || [];
+const path = Array.isArray(slug) ? slug.join("/") : slug;
 
-const { data, pending, error, refresh } = await useAsyncData(
-  `content-${path}`,
-  () => queryContent('design', path).findOne()
-)
+// Initialize GitHub functionality
+const { getRawContent, saveFileContent, isLoggedIn, currentBranch } = useGithub();
+const { showToast } = useToast();
 
-const editorContent = ref('')
-const isEditing = ref(false)
+const loading = ref(false);
+const isEditing = ref(false);
+const editorContent = ref("");
 
-// Function to fetch raw markdown content
-async function fetchRawContent() {
+// Fetch initial content for the page
+const { data, refresh } = await useAsyncData(`content-${path}`, () =>
+  queryContent("design", ...slug).findOne()
+);
+
+// Compute the file path for GitHub operations
+const contentPath = computed(() => {
+  const designPrefix = "/design/";
+  const currentPath = route.path;
+  const pathAfterDesign = currentPath.startsWith(designPrefix)
+    ? currentPath.slice(designPrefix.length)
+    : "";
+  const basePath = pathAfterDesign || "index";
+  return `content/design/${basePath}.md`;
+});
+
+// Load content from current branch
+const loadContent = async () => {
+  loading.value = true;
   try {
-    const filePath = `design/${path}.md`
-    console.log('Fetching raw content from:', filePath)
-    
-    const response = await $fetch('/api/raw-content', {
-      params: { path: filePath }
-    })
-    
-    console.log('Raw content fetched:', response.content)
-    editorContent.value = response.content
-  } catch (err) {
-    console.error('Error fetching raw content:', err)
+    console.log(`Loading content from branch: ${currentBranch.value}`);
+    const content = await getRawContent(
+      "tiresomefanatic",
+      "heroechotemp",
+      contentPath.value,
+      currentBranch.value
+    );
+    editorContent.value = content;
+  } catch (error) {
+    console.error(`Error loading content from branch ${currentBranch.value}:`, error);
+    showToast({
+      title: "Error",
+      message: `Failed to load content from branch: ${currentBranch.value}`,
+      type: "error",
+    });
+  } finally {
+    loading.value = false;
   }
-}
+};
 
-async function toggleEdit() {
-  isEditing.value = !isEditing.value
-  if (isEditing.value) {
-    await fetchRawContent()
+// Handle edit button click
+const handleEditClick = async () => {
+  if (!isLoggedIn.value) {
+    showToast({
+      title: "Authentication Required",
+      message: "Please sign in with GitHub to edit content",
+      type: "warning",
+    });
+    return;
   }
-}
 
-const updateContent = (newContent) => {
-  editorContent.value = newContent
-}
+  isEditing.value = true;
+  await loadContent();
+};
 
-const saveContent = async (content) => {
+// Handle content save
+const handleSave = async (content: string) => {
+  if (!content || !isLoggedIn.value) {
+    showToast({
+      title: "Error",
+      message: "Please sign in to save changes",
+      type: "error",
+    });
+    return;
+  }
+
   try {
-    const filePath = `design/${path}.md`
-    console.log('Saving content to:', filePath)
-    
-    const response = await $fetch('/api/raw-content', {
-      method: 'POST',
-      body: {
-        path: filePath,
-        content
-      }
-    })
-    
-    if (response.success) {
-      alert('Content saved successfully!')
-      isEditing.value = false
-      // Refresh the page data
-      await refresh()
+    console.log(`Saving to branch: ${currentBranch.value}`);
+    const result = await saveFileContent(
+      "tiresomefanatic",
+      "heroechotemp",
+      contentPath.value,
+      content,
+      `Update ${contentPath.value}`,
+      currentBranch.value
+    );
+
+    if (result) {
+      showToast({
+        title: "Success",
+        message: `Content saved successfully to branch: ${currentBranch.value}`,
+        type: "success",
+      });
+      isEditing.value = false;
+      await refresh();
     } else {
-      throw new Error('Failed to save content')
+      throw new Error(`Failed to save to branch: ${currentBranch.value}`);
     }
   } catch (error) {
-    console.error('Error saving:', error)
-    alert('Failed to save content')
+    console.error(`Error saving to branch ${currentBranch.value}:`, error);
+    showToast({
+      title: "Error",
+      message: `Failed to save to branch: ${currentBranch.value}`,
+      type: "error",
+    });
   }
-}
-</script>
+};
 
+// Handle content change
+const handleContentChange = (newContent: string) => {
+  editorContent.value = newContent;
+};
+
+// Handle editor error
+const handleEditorError = (error) => {
+  showToast({
+    title: "Editor Error",
+    message: error.message,
+    type: "error",
+  });
+};
+
+// Handle exit editor
+const exitEditor = () => {
+  isEditing.value = false;
+};
+
+// Watch for branch changes
+watch(currentBranch, async (newBranch) => {
+  if (isEditing.value) {
+    console.log(`Branch changed to: ${newBranch}, reloading content...`);
+    await loadContent();
+  }
+});
+</script>
 <style scoped>
 .page-wrapper {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  position: relative;
 }
 
 .site-header {
   height: 64px;
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 1px solid #e5e7eb;
   background: white;
 }
 
 .header-content {
-  max-width: 1440px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 0 32px;
   height: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 48px;
 }
 
 .logo {
   font-weight: 600;
-  font-size: 16px;
-  color: #000;
+  font-size: 20px;
   text-decoration: none;
-  display: flex;
-  align-items: center;
+  color: inherit;
 }
 
 .logo-dot {
-  color: #4361EE;
+  color: #4361ee;
   margin-left: 2px;
 }
 
@@ -167,55 +248,54 @@ const saveContent = async (content) => {
 
 .main-nav a {
   text-decoration: none;
-  color: #6B7280;
+  color: #6b7280;
   font-size: 14px;
 }
 
 .main-nav a.active {
-  color: #000;
+  color: inherit;
 }
 
 .search-box input {
   width: 240px;
   height: 36px;
   padding: 0 16px;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
   font-size: 14px;
 }
 
 .content-area {
-  flex: 1;
   display: flex;
-  background: #F9FAFB;
+  background: #f9fafb;
+  min-height: calc(100vh - 64px);
 }
 
 .content-area.editing-mode {
-  background: white;
+  padding: 32px;
 }
 
 .sidebar {
   width: 240px;
   padding: 32px 0;
-  border-right: 1px solid #E5E7EB;
+  border-right: 1px solid #e5e7eb;
   background: white;
 }
 
 .main-content {
   flex: 1;
   padding: 32px;
-  min-width: 0;
 }
 
 .content-header {
+  margin-bottom: 24px;
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 32px;
 }
 
 .edit-button {
   padding: 8px 16px;
-  background: #4361EE;
+  background: #4361ee;
   color: white;
   border: none;
   border-radius: 6px;
@@ -223,12 +303,19 @@ const saveContent = async (content) => {
   font-size: 14px;
 }
 
-.prose {
-  max-width: 720px;
-  margin: 0 auto;
+.edit-button:hover {
+  background: #3651d4;
 }
 
 .editor-container {
-  height: calc(100vh - 128px);
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-height: calc(100vh - 200px);
+}
+
+.prose {
+  max-width: 720px;
+  margin: 0 auto;
 }
 </style>

@@ -5,7 +5,6 @@ import 'node:fs';
 import 'node:path';
 import '@iconify/utils';
 import 'consola/core';
-import 'node:module';
 
 const callback_get = defineEventHandler(async (event) => {
   const config = useRuntimeConfig();

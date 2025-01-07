@@ -7,7 +7,6 @@ import 'node:fs';
 import 'node:path';
 import '@iconify/utils';
 import 'consola/core';
-import 'node:module';
 
 const update_post = defineEventHandler(async (event) => {
   const body = await readBody(event);

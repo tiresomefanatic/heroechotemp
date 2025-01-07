@@ -1,5 +1,5 @@
 {
   "buildCommand": "nuxt build",
   "devCommand": "nuxt dev",
-  "framework": "nitro"
+  "framework": "nuxtjs"
 }
