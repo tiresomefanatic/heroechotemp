@@ -1,6 +1,6 @@
 ---
 title: Typography
-description: Echo Design System typography document
+description: Echo Design System typography doc
 ---
 
 <div class="design-layout">
