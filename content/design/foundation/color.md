@@ -1,6 +1,6 @@
 ---
 title: Color
-description: Echo Design System 
+description: Echo Design
 ---
 
 <style>
