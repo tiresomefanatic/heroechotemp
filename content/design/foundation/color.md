@@ -1,34 +1,130 @@
 ---
 title: Color
-description: Echo Design S
+description: Echo Design System
 ---
 
-<style>
-.design-layout {
-  display: grid;
-  grid-template-columns: 240px 1fr;
-  min-height: calc(100vh - 4rem);
-}
+::raw
 
-.design-content {
-  padding: 2rem;
+<script setup>
+const primaryColors = ['white', 'orange', 'black']
+const secondaryColors = ['blue', 'red']
+const tertiaryColors = ['yellow', 'green', 'blue-light', 'red-dark', 'lime', 'cyan']
+
+const shadeTypes = {
+  primary: ['black-shades', 'orange-shades'],
+  secondary: ['blue-shades', 'red-shades'],
+  tertiary: [
+    'blue-light-shades',
+    'cyan-shades',
+    'yellow-shades',
+    'red-dark-shades',
+    'green-shades',
+    'lime-shades'
+  ]
+}
+</script>
+
+<template>
+<div class="color-display"> <section class="color-section">
+      <div class="color-heading">
+        <h2>Primary color</h2>
+        <p>Our primary colors form the foundation of our visual identity.</p>
+      </div>
+      <div class="color-grid primary-colors">
+        <div v-for="color in primaryColors"
+             :key="color"
+             class="color-box"
+             :class="color">
+             <span class="color-name">{{ color }}</span>
+        </div>
+      </div>
+    </section>
+
+  <section class="color-section">
+      <div class="color-heading">
+        <h2>Secondary color</h2>
+        <p>Secondary colors complement our primary palette and provide additional visual hierarchy.</p>
+      </div>
+      <div class="color-grid secondary-colors">
+        <div v-for="color in secondaryColors"
+             :key="color"
+             class="color-box"
+             :class="color">
+             <span class="color-name">{{ color }}</span>
+        </div>
+      </div>
+    </section>
+
+  <section class="color-section">
+      <div class="color-heading">
+        <h2>Tertiary color</h2>
+        <p>Our tertiary colors provide flexibility for various UI elements and states.</p>
+      </div>
+      <div class="color-grid tertiary-colors">
+        <div v-for="color in tertiaryColors"
+             :key="color"
+             class="color-box"
+             :class="color">
+             <span class="color-name">{{ color }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="shades-section">
+      <h2>Primary color shades</h2>
+      <div class="color-shades">
+        <div v-for="type in shadeTypes.primary"
+             :key="type"
+             class="shade-row"
+             :class="type">
+          <div v-for="n in 8" :key="n" class="shade"></div>
+        </div>
+      </div>
+
+      <h2>Secondary color shades</h2>
+      <div class="color-shades">
+        <div v-for="type in shadeTypes.secondary"
+             :key="type"
+             class="shade-row"
+             :class="type">
+          <div v-for="n in 8" :key="n" class="shade"></div>
+        </div>
+      </div>
+
+      <h2>Tertiary color shades</h2>
+      <div class="color-shades">
+        <div v-for="type in shadeTypes.tertiary"
+             :key="type"
+             class="shade-row"
+             :class="type">
+          <div v-for="n in 8" :key="n" class="shade"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</template>
+
+<style scoped>
+.color-display {
+  margin: 2rem 0;
 }
 
 .color-section {
-  margin-top: 2rem;
+  margin-bottom: 3rem;
 }
 
 .color-heading {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.design-sidebar {
-  width: 240px;
-  flex-shrink: 0;
+.color-heading h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
 }
 
 .color-grid {
-  flex: 2;
   display: grid;
   gap: 1rem;
 }
@@ -49,9 +145,27 @@ description: Echo Design S
 .color-box {
   aspect-ratio: 1;
   border-radius: 4px;
+  display: flex;
+  align-items: flex-end;
+  padding: 0.75rem;
+  position: relative;
 }
 
-.white { background-color: #FFFFFF; border: 1px solid #EEEEEE; }
+.color-name {
+  color: white;
+  font-size: 0.875rem;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.white { 
+  background-color: #FFFFFF; 
+  border: 1px solid #EEEEEE; 
+}
+.white .color-name {
+  color: #333;
+  text-shadow: none;
+}
+
 .orange { background-color: #FF4D00; }
 .black { background-color: #000000; }
 .blue { background-color: #4B6BFB; }
@@ -64,7 +178,7 @@ description: Echo Design S
 .cyan { background-color: #00BCD4; }
 
 .color-shades {
-  margin: 2rem 0;
+  margin: 1.5rem 0 3rem;
 }
 
 .shade-row {
@@ -97,203 +211,17 @@ description: Echo Design S
 .orange-shades .shade:nth-child(7) { background-color: #FFE0B3; }
 .orange-shades .shade:nth-child(8) { background-color: #FFF0E6; }
 
-.accessibility-chart {
-  margin: 2rem 0;
-  border: 1px solid #EEEEEE;
-  border-radius: 4px;
-  padding: 1rem;
-}
-
-.accessibility-chart img {
-  width: 100%;
-  height: auto;
-}
-
 @media (max-width: 768px) {
-  .design-layout {
-    grid-template-columns: 1fr;
-  }
-  
-  .design-sidebar {
-    width: 100%;
-  }
-
-  .color-section {
-    margin-top: 1rem;
+  .primary-colors,
+  .secondary-colors,
+  .tertiary-colors {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>
 
-<div class="design-layout">
-<div class="design-content">
+::
 
 # Color
 
 Our color system helps define the visual expression of our products. Each group of colors is carefully selected to
-
-<div class="color-section">
-  <div class="color-heading">
-    <h2>Primary color</h2>
-    <p>Our primary colors form the foundation of our visual identity.</p>
-  </div>
-  <div class="color-grid primary-colors">
-    <div class="color-box white"></div>
-    <div class="color-box orange"></div>
-    <div class="color-box black"></div>
-  </div>
-</div>
-
-<div class="color-section">
-  <div class="color-heading">
-    <h2>Secondary color</h2>
-    <p>Secondary colors complement our primary palette and provide additional visual hierarchy.</p>
-  </div>
-  <div class="color-grid secondary-colors">
-    <div class="color-box blue"></div>
-    <div class="color-box red"></div>
-  </div>
-</div>
-
-<div class="color-section">
-  <div class="color-heading">
-    <h2>Tertiary color</h2>
-    <p>Our tertiary colors provide flexibility for various UI elements and states.</p>
-  </div>
-  <div class="color-grid tertiary-colors">
-    <div class="color-box yellow"></div>
-    <div class="color-box green"></div>
-    <div class="color-box blue-light"></div>
-    <div class="color-box red-dark"></div>
-    <div class="color-box lime"></div>
-    <div class="color-box cyan"></div>
-  </div>
-</div>
-
-<h2>Primary color shades</h2>
-<div class="color-shades">
-  <div class="shade-row black-shades">
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-  </div>
-  <div class="shade-row orange-shades">
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-  </div>
-</div>
-
-<h2>Secondary color shades</h2>
-<div class="color-shades">
-  <div class="shade-row blue-shades">
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-  </div>
-  <div class="shade-row red-shades">
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-  </div>
-</div>
-
-<h2>Tertiary color shades</h2>
-<div class="color-shades">
-  <div class="shade-row blue-light-shades">
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-  </div>
-  <div class="shade-row cyan-shades">
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-  </div>
-  <div class="shade-row yellow-shades">
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-  </div>
-  <div class="shade-row red-dark-shades">
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-  </div>
-  <div class="shade-row green-shades">
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-  </div>
-  <div class="shade-row lime-shades">
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-    <div class="shade"></div>
-  </div>
-</div>
-
-<h2>Color accessibility chart</h2>
-<p>The color combinations are designed to meet WCAG 2.0 accessibility standards. The chart below shows the contrast ratio between text and background colors:</p>
-
-<ul>
-  <li>AA Large: Text is at least 18pt or 14pt bold</li>
-  <li>AA: Text is less than 18pt</li>
-  <li>AAA: Enhanced contrast for text less than 18pt</li>
-  <li>AAA Large: Enhanced contrast for text at least 18pt or 14pt bold</li>
-</ul>
-
-<div class="accessibility-chart">
-  <img src="/images/color-accessibility-chart.svg" alt="Color accessibility chart showing contrast ratios between different color combinations" />
-</div>
-
-</div>
-</div>

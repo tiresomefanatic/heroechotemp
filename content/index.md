@@ -1,157 +1,374 @@
 ---
-title: Echo Design System
-description: Modern design system for digital experiences
-navigation:
-  title: Home
+title: ECHO Design System
+description: Foundation of Design
 ---
 
-<div class="hero">
-  <h1>FOUNDATION<br/>OF DESIGN</h1>
-  <p class="hero-text">Echo is our comprehensive design system for creating cohesive digital experiences. It provides everything you need — from basic foundations to complex components.</p>
-</div>
-
-## Get started
-
-<div class="card-grid">
-  <a href="/design" class="card design">
-    <div class="card-icon">
-      <img src="/images/design-icon.svg" alt="Design icon" />
+<script setup>
+const CardComponent = {
+  props: {
+    image: String,
+    alt: String,
+    title: String,
+    description: String
+  },
+  template: `
+    <div class="card">
+      <div class="card-image">
+        <img :src="image" :alt="alt"/>
+      </div>
+      <h3>{{ title }}</h3>
+      <p>{{ description }}</p>
     </div>
-    <h3>Design</h3>
-    <p>Create beautiful and intuitive interfaces with our comprehensive design guidelines and principles.</p>
-  </a>
-  <a href="/develop" class="card develop">
-    <div class="card-icon">
-      <img src="/images/develop-icon.svg" alt="Develop icon" />
+  `
+}
+
+const GoalItem = {
+  props: {
+    title: String,
+    description: String
+  },
+  template: `
+    <div class="goal-item">
+      <h3>{{ title }}</h3>
+      <p>{{ description }}</p>
     </div>
-    <h3>Develop</h3>
-    <p>Build robust solutions using our component library, code examples, and development best practices.</p>
-  </a>
-  <a href="/contribute" class="card contribute">
-    <div class="card-icon">
-      <img src="/images/contribute-icon.svg" alt="Contribute icon" />
+  `
+}
+
+const FooterItem = {
+  props: {
+    title: String,
+    description: String,
+    link: String,
+    linkText: String
+  },
+  template: `
+    <div class="footer-item">
+      <h2>{{ title }}</h2>
+      <p>{{ description }}</p>
+      <a :href="link" class="arrow-link">{{ linkText }}</a>
     </div>
-    <h3>Contribute</h3>
-    <p>Join our community and help shape the future of our design system through feedback and contributions.</p>
-  </a>
-</div>
+  `
+}
 
-## What is Echo?
+const cards = [
+  {
+    image: '/images/design-circles.svg',
+    alt: 'Design circular pattern',
+    title: 'Design',
+    description: 'Lorem ipsum dolor sit amet consectetur ut et amet. Ullamcorper ut et ullamcorper consectur ut et amet.'
+  },
+  {
+    image: '/images/develop-curves.svg',
+    alt: 'Develop curve pattern',
+    title: 'Develop',
+    description: 'Lorem ipsum dolor sit amet consectetur ut et amet. Ullamcorper ut et ullamcorper consectur ut et amet.'
+  },
+  {
+    image: '/images/contribute-waves.svg',
+    alt: 'Contribute wave pattern',
+    title: 'Contribute',
+    description: 'Lorem ipsum dolor sit amet consectetur ut et amet. Ullamcorper ut et ullamcorper consectur ut et amet.'
+  }
+]
 
-Echo is more than just a design system — it's a living ecosystem that evolves with our needs and experiences. Our goal is to provide a single source of truth for design and development, ensuring consistency across all our digital products while maintaining flexibility for innovation.
+const goals = [
+  {
+    title: 'Cohesive Experience',
+    description: 'Create a cohesive experience across all digital brand and product functions'
+  },
+  {
+    title: 'Autonomy',
+    description: 'Give autonomy to anyone working or working on our digital products'
+  },
+  {
+    title: 'Feedback and contribution',
+    description: 'Collect feedback and offer design reviews to help improve digital product creation process'
+  }
+]
 
-<div class="principles-grid">
-  <div class="principle">
-    <h3>Cohesive</h3>
-    <p>Create seamless experiences across all touchpoints through consistent design patterns and interactions.</p>
+const footerItems = [
+  {
+    title: "What's new?",
+    description: 'Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut.',
+    link: '#',
+    linkText: 'View updates →'
+  },
+  {
+    title: 'Get in touch',
+    description: 'Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut.',
+    link: '#',
+    linkText: 'Contact us →'
+  }
+]
+</script>
+
+<template>
+  <div>
+    <section class="hero">
+      <div class="hero-content">
+        <h1>FOUNDATION<br/>OF DESIGN</h1>
+      </div>
+    </section>
+
+   <div class="container">
+      <section class="get-started">
+        <h2>Get started</h2>
+
+   <div class="card-grid">
+          <CardComponent
+            v-for="card in cards"
+            :key="card.title"
+            :image="card.image"
+            :title="card.title"
+            :description="card.description"
+            :alt="card.alt"
+          />
+        </div>
+      </section>
+
+   <section class="echosystem">
+        <h2>What's the Echosystem?</h2>
+        <p class="description">Echo is a Design System we use to create Meta products. Our main goal is to offer everything you need — design specs, code files, and guidelines. Access distributed to the people that need them and always available in the spaces that we work in.</p>
+
+   <div class="dark-box">
+          <img src="/images/echosystem-grid.svg" alt="Echosystem illustration"/>
+        </div>
+      </section>
+
+  <section class="goals">
+        <h2>Goals</h2>
+
+  <div class="goals-list">
+          <GoalItem
+            v-for="goal in goals"
+            :key="goal.title"
+            :title="goal.title"
+            :description="goal.description"
+          />
+        </div>
+      </section>
+
+   <section class="origin">
+        <h2>How did ECHO come about?</h2>
+
+  <div class="blue-card">
+          <h3>Echoing from the past.<br/>Echoing into the future.</h3>
+        </div>
+
+   <div class="experience">
+          <h3>Echo Experience</h3>
+          <p>Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut vestibulum pharetra. Vitae gravida rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam dolor lacinia.</p>
+        </div>
+   </section>
+
+   <div class="footer-grid">
+        <FooterItem
+          v-for="item in footerItems"
+          :key="item.title"
+          :title="item.title"
+          :description="item.description"
+          :link="item.link"
+          :linkText="item.linkText"
+        />
+      </div>
+    </div>
+
   </div>
-  <div class="principle">
-    <h3>Flexible</h3>
-    <p>Adapt and scale to meet the unique needs of different products while maintaining core design principles.</p>
-  </div>
-  <div class="principle">
-    <h3>Collaborative</h3>
-    <p>Built together with our community, incorporating feedback and evolving with our collective needs.</p>
-  </div>
-</div>
+</template>
 
 <style>
 .hero {
-  background: var(--echo-orange);
-  margin: -2rem -2rem 3rem -2rem;
-  padding: 4rem 2rem;
-  color: white;
-  text-align: center;
+  margin: -64px calc(-50vw + 50%) 0;
+  width: 100vw;
+  height: 400px;
+  background-color: #FF6B00;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-content {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 120px 80px;
 }
 
 .hero h1 {
-  font-size: 3.5rem;
+  color: white;
+  font-size: 48px;
+  font-weight: 500;
   line-height: 1.2;
-  margin: 0 0 1.5rem 0;
-  font-weight: 700;
+  margin: 0;
 }
 
-.hero-text {
-  font-size: 1.25rem;
-  line-height: 1.6;
-  max-width: 640px;
+.container {
+  max-width: 1440px;
   margin: 0 auto;
-  opacity: 0.9;
+  padding: 0 80px;
+}
+
+.get-started {
+  margin-top: 80px;
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 500;
+  margin-bottom: 40px;
 }
 
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  margin: 2rem 0 4rem 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
 }
 
 .card {
-  padding: 2rem;
-  border-radius: 1rem;
-  background: #f8f9fa;
-  text-decoration: none;
-  color: inherit;
-  transition: all 0.2s;
-}
-
-.card:hover {
-  transform: translateY(-4px);
   background: white;
-  box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.card-icon {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 1.5rem;
+.card-image {
+  background: #1C1C1C;
+  border-radius: 4px;
+  padding: 24px;
+  margin-bottom: 24px;
+  aspect-ratio: 16/9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-image img {
+  width: 100%;
+  height: auto;
 }
 
 .card h3 {
-  margin: 0 0 1rem 0;
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 12px 0;
 }
 
 .card p {
-  margin: 0;
-  color: #666;
+  font-size: 14px;
   line-height: 1.6;
+  color: #666;
+  margin: 0;
 }
 
-.principles-grid {
+.echosystem {
+  margin-top: 120px;
+}
+
+.echosystem .description {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #666;
+  max-width: 800px;
+  margin-bottom: 40px;
+}
+
+.dark-box {
+  background: #1C1C1C;
+  border-radius: 12px;
+  padding: 40px;
+  margin-top: 40px;
+}
+
+.dark-box img {
+  width: 100%;
+  height: auto;
+}
+
+.goals {
+  margin-top: 120px;
+}
+
+.goals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.goal-item h3 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.goal-item p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #666;
+  margin: 0;
+}
+
+.origin {
+  margin-top: 120px;
+}
+
+.blue-card {
+  background: #4361EE;
+  border-radius: 12px;
+  padding: 80px;
+  text-align: center;
+  margin: 40px 0;
+}
+
+.blue-card h3 {
+  color: white;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.experience {
+  margin-top: 60px;
+}
+
+.experience h3 {
+  font-size: 24px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.experience p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #666;
+  max-width: 800px;
+  margin: 0;
+}
+
+.footer-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  margin: 2rem 0;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 80px;
+  margin: 120px 0;
 }
 
-.principle {
-  padding: 2rem;
-  background: #f8f9fa;
-  border-radius: 1rem;
+.footer-item h2 {
+  margin-bottom: 16px;
 }
 
-.principle h3 {
-  margin: 0 0 1rem 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.principle p {
-  margin: 0;
-  color: #666;
+.footer-item p {
+  font-size: 14px;
   line-height: 1.6;
+  color: #666;
+  margin-bottom: 16px;
 }
 
-@media (max-width: 768px) {
-  .hero h1 {
-    font-size: 2.5rem;
-  }
-  
-  .card-grid,
-  .principles-grid {
-    grid-template-columns: 1fr;
-  }
+.arrow-link {
+  color: #4361EE;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.arrow-link:hover {
+  text-decoration: underline;
 }
 </style>

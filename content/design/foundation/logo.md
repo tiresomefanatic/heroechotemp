@@ -3,209 +3,141 @@ title: Logo
 description: Echo Design System logo documen
 ---
 
-<div class="design-layout">
-<div class="design-content">
-
 # Logo
 
-The Echo logo embodies our commitment to innovation and clarity in design. It serves as the cornerstone of our brand identity.
+Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam non ipsum.
 
-<div class="logo-section">
-  <div class="section-heading">
-    <h2>Construction</h2>
-  </div>
-  <div class="section-content">
-    <div class="logo-construction">
-      <img src="/images/logo-construction.svg" alt="Logo construction grid showing measurements and proportions" />
-    </div>
-    <div class="description">
-      <h3>We call our symbol The Zig</h3>
-      <ul>
-        <li><strong>The Zig</strong>: Our signature element represents forward momentum and energy</li>
-        <li><strong>Grid System</strong>: Built on a mathematical grid for perfect proportions</li>
-        <li><strong>Angles</strong>: Consistent 45-degree angles maintain visual harmony</li>
-      </ul>
-    </div>
-  </div>
-</div>
+## Construction
 
-<div class="logo-section">
-  <div class="section-heading">
-    <h2>Zig - Monogram</h2>
-  </div>
-  <div class="section-content">
-    <div class="logo-showcase monogram">
-      <img src="/images/zig-monogram.svg" alt="Zig monogram symbol in black" />
-    </div>
-    <div class="description">
-      <p>The Zig monogram serves as our icon mark, designed for recognition at smaller scales and as a memorable brand element.</p>
-      <ul>
-        <li>App icons</li>
-        <li>Favicons</li>
-        <li>Social media avatars</li>
-        <li>Small-scale applications</li>
-      </ul>
-    </div>
-  </div>
-</div>
+![Logo Construction](/images/logo-construction.svg)
 
-<div class="logo-section">
-  <div class="section-heading">
-    <h2>Zig - Clearspaces</h2>
+### We call our symbol The Zig
+
+The Zig stands for motion, spontaneity and energy. It speaks to the restless energy of the future generations and their desire to create their perfect world.
+
+The Zig is the graphic encapsulation of our narrative and serves to identify everything that we represent. It is a living object that's always in motion. The V approximation represents the 'resting' state of the Zig.
+
+## Zig - Monogram
+
+![Zig Monogram](/images/zig-monogram.svg)
+
+The Zig monogram serves as our icon mark, designed for recognition at smaller scales and as a memorable brand element.
+
+- App icons
+- Favicons
+- Social media avatars
+- Small-scale applications
+
+## Zig - Clearspaces
+
+![Clearspaces](/images/zig-clearspaces.svg)
+
+- **Minimum Clearspace**: Equal to the height of the Zig monogram
+- **Protected Area**: No other visual elements may intrude into this space
+- **Scaling**: Clearspace scales proportionally with logo size
+
+## Zig - Alignment
+
+![Alignment](/images/zig-alignment.svg)
+
+### Horizontal Alignment
+
+- Left-aligned with content when possible
+- Centered for standalone applications
+
+### Vertical Alignment
+
+- Baseline alignment with adjacent text
+- Optical center alignment in contained spaces
+
+## Zig - Small Reproduction
+
+<div class="reproduction-grid">
+  <div class="logo-dark">
+    ![Zig Small Dark](/images/zig-small-dark.svg)
   </div>
-  <div class="section-content">
-    <div class="logo-showcase clearspaces">
-      <img src="/images/zig-clearspaces.svg" alt="Zig logo with clearspace guidelines showing minimum spacing requirements" />
-    </div>
-    <div class="description">
-      <ul>
-        <li><strong>Minimum Clearspace</strong>: Equal to the height of the Zig monogram</li>
-        <li><strong>Protected Area</strong>: No other visual elements may intrude into this space</li>
-        <li><strong>Scaling</strong>: Clearspace scales proportionally with logo size</li>
-      </ul>
-    </div>
+  <div class="logo-light">
+    ![Zig Small Light](/images/zig-small-light.svg)
   </div>
 </div>
 
-<div class="logo-section">
-  <div class="section-heading">
-    <h2>Zig - Alignment</h2>
-  </div>
-  <div class="section-content">
-    <div class="logo-showcase alignment">
-      <img src="/images/zig-alignment.svg" alt="Zig logo alignment guidelines showing proper positioning" />
-    </div>
-    <div class="description">
-      <h3>Horizontal Alignment</h3>
-      <ul>
-        <li>Left-aligned with content when possible</li>
-        <li>Centered for standalone applications</li>
-      </ul>
-      <h3>Vertical Alignment</h3>
-      <ul>
-        <li>Baseline alignment with adjacent text</li>
-        <li>Optical center alignment in contained spaces</li>
-      </ul>
-    </div>
-  </div>
-</div>
+## Logo Variations
 
-<div class="logo-section">
-  <div class="section-heading">
-    <h2>Zig - Small Reproduction</h2>
-  </div>
-  <div class="section-content">
-    <div class="logo-showcase reproduction">
-      <div class="reproduction-grid">
-        <div class="logo-dark">
-          <img src="/images/zig-small-dark.svg" alt="Zig logo small reproduction on dark background" />
-        </div>
-        <div class="logo-light">
-          <img src="/images/zig-small-light.svg" alt="Zig logo small reproduction on light background" />
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+- **Primary Logo**: Full-color version for primary applications. Used on white or light backgrounds.
+- **Monochrome**: Black version for dark backgrounds. White version for light backgrounds.
+- **One-Color**: Solid brand orange version. Used for special applications.
 
-<div class="logo-section">
-  <div class="section-heading">
-    <h2>Logo Variations</h2>
-  </div>
-  <div class="section-content">
-    <ul>
-      <li><strong>Primary Logo</strong>: Full-color version for primary applications. Used on white or light backgrounds.</li>
-      <li><strong>Monochrome</strong>: Black version for dark backgrounds. White version for light backgrounds.</li>
-      <li><strong>One-Color</strong>: Solid brand orange version. Used for special applications.</li>
-    </ul>
-  </div>
-</div>
+## Usage Guidelines
 
-<div class="logo-section">
-  <div class="section-heading">
-    <h2>Usage Guidelines</h2>
-  </div>
-  <div class="section-content">
-    <h3>Do's</h3>
-    <ul>
-      <li>Maintain minimum size requirements</li>
-      <li>Use approved color variations</li>
-      <li>Preserve clearspace</li>
-      <li>Scale proportionally</li>
-    </ul>
-    <h3>Don'ts</h3>
-    <ul>
-      <li>Don't modify the logo design</li>
-      <li>Don't rotate or skew</li>
-      <li>Don't change colors</li>
-      <li>Don't add effects or shadows</li>
-    </ul>
-  </div>
-</div>
+### Do's
 
-</div>
-</div>
+- Maintain minimum size requirements
+- Use approved color variations
+- Preserve clearspace
+- Scale proportionally
+
+### Don'ts
+
+- Don't modify the logo design
+- Don't rotate or skew
+- Don't change colors
+- Don't add effects or shadows
 
 <style>
-.design-layout {
-  display: flex;
-  gap: 2rem;
+/* Content specific styles */
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #000000;
+  line-height: 1.6;
 }
 
-.design-content {
-  flex: 1;
-  max-width: 800px;
+h1 {
+  font-size: 2rem;
+  font-weight: 500;
+  margin: 2rem 0 1rem;
 }
 
-.logo-section {
-  display: flex;
-  gap: 2rem;
-  margin: 3rem 0;
+h2 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin: 3rem 0 1.5rem;
 }
 
-.section-heading {
-  flex: 1;
+h3 {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin: 1.5rem 0 1rem;
 }
 
-.section-heading h2 {
-  margin: 0;
+p {
+  margin: 1rem 0;
+  max-width: 65ch;
 }
 
-.section-content {
-  flex: 2;
-}
-
-.logo-construction,
-.logo-showcase {
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 2rem 0;
   background: #f5f5f5;
   padding: 2rem;
   border-radius: 4px;
 }
 
-.logo-construction img,
-.logo-showcase img {
-  width: 100%;
-  height: auto;
-  display: block;
+ul {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
 }
 
-.description {
-  margin-top: 2rem;
-}
-
-.description h3 {
-  margin: 0 0 1rem;
-}
-
-.description p {
-  color: #666;
-  margin: 0 0 1rem;
+li {
+  margin: 0.5rem 0;
 }
 
 .reproduction-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
+  margin: 2rem 0;
 }
 
 .logo-dark {
@@ -219,23 +151,5 @@ The Echo logo embodies our commitment to innovation and clarity in design. It se
   padding: 2rem;
   border-radius: 4px;
   border: 1px solid #eee;
-}
-
-@media (max-width: 768px) {
-  .design-layout {
-    flex-direction: column;
-  }
-  
-  .logo-section {
-    flex-direction: column;
-  }
-
-  .section-heading {
-    margin-bottom: 1rem;
-  }
-
-  .reproduction-grid {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

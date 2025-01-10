@@ -1,11 +1,21 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import { useToast } from "~/composables/useToast";
 import { useGithub } from "~/composables/useGithub";
 import { Octokit } from "@octokit/rest";
 import CollaborationSidebar from "~/components/CollaborationSidebar.vue";
+import { Editor, EditorContent } from "@tiptap/vue-3";
+import StarterKit from "@tiptap/starter-kit";
+import Document from "@tiptap/extension-document";
+import Paragraph from "@tiptap/extension-paragraph";
+import Text from "@tiptap/extension-text";
+import CodeBlock from "@tiptap/extension-code-block";
+import BulletList from "@tiptap/extension-bullet-list";
+import OrderedList from "@tiptap/extension-ordered-list";
+import ListItem from "@tiptap/extension-list-item";
+import HardBreak from "@tiptap/extension-hard-break";
 
 interface VersionEntry {
   timestamp: Date;
@@ -31,6 +41,7 @@ const originalContent = ref("");
 const isSaving = ref(false);
 const previewMode = ref(false);
 const versionHistory = ref<VersionEntry[]>([]);
+const editor = ref<Editor | null>(null);
 
 // Initialize composables
 const { showToast } = useToast();
@@ -45,19 +56,91 @@ const getOctokit = () => {
   return new Octokit({ auth: token });
 };
 
+// Initialize Tiptap editor
+onMounted(() => {
+  editor.value = new Editor({
+    extensions: [
+      Document,
+      Paragraph.configure({
+        HTMLAttributes: {
+          class: "editor-paragraph",
+        },
+      }),
+      Text,
+      HardBreak,
+      CodeBlock.configure({
+        HTMLAttributes: {
+          class: "editor-code-block",
+        },
+      }),
+      BulletList.configure({
+        HTMLAttributes: {
+          class: "editor-bullet-list",
+        },
+      }),
+      OrderedList.configure({
+        HTMLAttributes: {
+          class: "editor-ordered-list",
+        },
+      }),
+      ListItem.configure({
+        HTMLAttributes: {
+          class: "editor-list-item",
+        },
+      }),
+      StarterKit.configure({
+        document: false,
+        paragraph: false,
+        text: false,
+        bulletList: false,
+        orderedList: false,
+        listItem: false,
+        codeBlock: false,
+        //  horizontalRule: true,
+        //  hardBreak: true,
+      }),
+    ],
+    content: props.content,
+    editorProps: {
+      attributes: {
+        class: "prose-editor",
+        spellcheck: "false",
+      },
+      handleDrop: (view, event, slice, moved) => {
+        event.preventDefault();
+        return true;
+      },
+      handlePaste: (view, event) => {
+        const text = event.clipboardData?.getData("text/plain");
+        if (text) {
+          view.dispatch(view.state.tr.insertText(text));
+          event.preventDefault();
+          return true;
+        }
+        return false;
+      },
+    },
+    onTransaction: ({ editor }) => {
+      localContent.value = editor.getHTML();
+      emit("update:content", editor.getHTML());
+    },
+  });
+});
+
+onBeforeUnmount(() => {
+  editor.value?.destroy();
+});
+
 // Watch for content changes from parent
 watch(
   () => props.content,
   (newContent) => {
-    console.log("Content prop changed:", {
-      newContent,
-      current: localContent.value,
-      original: originalContent.value,
-    });
-    if (newContent !== undefined && !localContent.value) {
-      // Only update both values on initial load
+    if (newContent !== undefined) {
       localContent.value = newContent;
       originalContent.value = newContent;
+      if (editor.value) {
+        editor.value.commands.setContent(newContent);
+      }
       versionHistory.value = [
         {
           timestamp: new Date(),
@@ -72,24 +155,12 @@ watch(
 
 // Watch local content changes
 watch(localContent, (newContent) => {
-  console.log("Local content changed:", {
-    newContent,
-    original: originalContent.value,
-    hasChanges: newContent !== originalContent.value,
-  });
   emit("update:content", newContent);
 });
 
 // Computed properties
 const hasChanges = computed(() => {
   const isDifferent = localContent.value !== originalContent.value;
-  console.log("Change detection:", {
-    local: localContent.value,
-    original: originalContent.value,
-    isDifferent,
-    localLength: localContent.value.length,
-    originalLength: originalContent.value.length,
-  });
   return isDifferent;
 });
 
@@ -105,23 +176,13 @@ const saveToDisk = async () => {
 
   isSaving.value = true;
   try {
-    console.log("Attempting to save:", {
-      filePath: props.filePath,
-      contentLength: localContent.value.length,
-      isLoggedIn: isLoggedIn.value,
-    });
-
     if (!isLoggedIn.value) {
       throw new Error("Please log in to GitHub first");
     }
 
-    // Emit save event and let parent handle the actual saving
     emit("save", localContent.value);
-
-    // Update local state after successful emit
     originalContent.value = localContent.value;
-    
-    // Update version history
+
     versionHistory.value.push({
       timestamp: new Date(),
       content: localContent.value,
@@ -135,7 +196,10 @@ const saveToDisk = async () => {
     console.error("Save error:", error);
     showToast({
       title: "Error",
-      message: error instanceof Error ? error.message : "Failed to commit changes. Please try again.",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to commit changes. Please try again.",
       type: "error",
     });
     emit("error", error as Error);
@@ -147,7 +211,6 @@ const saveToDisk = async () => {
 
 <template>
   <div class="editor-wrapper">
-    <!-- Login prompt -->
     <div v-if="!isLoggedIn" class="login-prompt">
       <p class="login-message">Please sign in with GitHub to edit this file</p>
       <button @click="github.login" class="login-button">
@@ -156,9 +219,7 @@ const saveToDisk = async () => {
     </div>
 
     <div v-else class="editor-layout">
-      <!-- Editor content -->
       <div class="editor-main">
-        <!-- Editor toolbar -->
         <div class="editor-toolbar">
           <div class="toolbar-left">
             <span class="file-path">{{ props.filePath }}</span>
@@ -188,17 +249,45 @@ const saveToDisk = async () => {
           </div>
         </div>
 
-        <!-- Editor content -->
         <div class="editor-content">
-          <textarea
-            v-if="!previewMode"
-            v-model="localContent"
-            class="markdown-editor"
-            :class="{ 'has-changes': hasChanges }"
-            placeholder="Start writing..."
-            :disabled="!isLoggedIn || isSaving"
-            aria-label="Markdown editor"
-          ></textarea>
+          <template v-if="!previewMode">
+            <div class="tiptap-toolbar" v-if="editor">
+              <button @click="editor.chain().focus().toggleBold().run()">
+                Bold
+              </button>
+              <button @click="editor.chain().focus().toggleItalic().run()">
+                Italic
+              </button>
+              <button
+                @click="
+                  editor.chain().focus().toggleHeading({ level: 1 }).run()
+                "
+              >
+                H1
+              </button>
+              <button
+                @click="
+                  editor.chain().focus().toggleHeading({ level: 2 }).run()
+                "
+              >
+                H2
+              </button>
+              <button @click="editor.chain().focus().toggleBulletList().run()">
+                Bullet List
+              </button>
+              <button @click="editor.chain().focus().toggleOrderedList().run()">
+                Ordered List
+              </button>
+              <button @click="editor.chain().focus().toggleCodeBlock().run()">
+                Code Block
+              </button>
+            </div>
+            <editor-content
+              :editor="editor"
+              class="markdown-editor"
+              :class="{ 'has-changes': hasChanges }"
+            />
+          </template>
 
           <div
             v-else
@@ -213,10 +302,74 @@ const saveToDisk = async () => {
   </div>
 </template>
 
+<style>
+/* Global editor styles */
+.prose-editor {
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+  color: #d4d4d4 !important;
+  background: #1e1e1e;
+  padding: 1rem !important;
+  outline: none !important;
+  min-height: 100vh;
+  overflow-y: auto;
+}
+
+.prose-editor p {
+  margin: 0 !important;
+  white-space: pre-wrap !important;
+  word-break: keep-all !important;
+  font-family: inherit !important;
+  color: #d4d4d4 !important;
+}
+
+.prose-editor pre {
+  margin: 0 !important;
+  padding: 1rem !important;
+  background: #2d2d2d !important;
+  border-radius: 4px !important;
+  overflow-x: auto !important;
+}
+
+.prose-editor code {
+  font-family: inherit !important;
+  background: transparent !important;
+  color: #d4d4d4 !important;
+}
+
+.editor-code-block {
+  background: #2d2d2d !important;
+  color: #d4d4d4 !important;
+  padding: 0.5rem !important;
+  border-radius: 4px !important;
+  font-family: inherit !important;
+  white-space: pre !important;
+}
+
+.editor-paragraph {
+  margin: 0 !important;
+}
+
+.editor-bullet-list,
+.editor-ordered-list {
+  margin: 0 !important;
+  padding-left: 1.5rem !important;
+}
+
+.editor-list-item {
+  margin: 0 !important;
+}
+</style>
+
 <style scoped>
 .editor-wrapper {
   height: calc(100vh - 64px);
-  background: white;
+  background: #1e1e1e;
   display: flex;
   flex-direction: column;
 }
@@ -239,28 +392,21 @@ const saveToDisk = async () => {
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 1rem;
-  border-bottom: 1px solid #eee;
-  background: #f8f9fa;
+  border-bottom: 1px solid #2d2d2d;
+  background: #252526;
 }
 
 .editor-content {
   flex: 1;
   overflow: hidden;
   position: relative;
-  background: white;
+  background: #1e1e1e;
   display: flex;
   flex-direction: column;
 }
 
 .markdown-editor {
-  width: 100%;
-  height: 100%;
-  padding: 1rem;
-  border: none;
-  resize: none;
-  font-family: "Monaco", monospace;
-  font-size: 14px;
-  line-height: 1.6;
+  flex: 1;
   overflow-y: auto;
 }
 
@@ -272,71 +418,51 @@ const saveToDisk = async () => {
   width: 100%;
 }
 
-.prose {
-  max-width: 65ch;
-  margin: 0 auto;
+.tiptap-toolbar {
+  padding: 0.5rem;
+  border-bottom: 1px solid #2d2d2d;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  background: #252526;
 }
 
-.prose :deep(h1) {
-  font-size: 2em;
-  margin-bottom: 1em;
+.tiptap-toolbar button {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #3c3c3c;
+  border-radius: 4px;
+  background: #252526;
+  color: #cccccc;
+  cursor: pointer;
+  font-size: 0.875rem;
 }
 
-.prose :deep(h2) {
-  font-size: 1.5em;
-  margin: 1em 0;
+.tiptap-toolbar button.is-active {
+  background: #37373d;
+  border-color: #0366d6;
 }
 
-.prose :deep(p) {
-  margin: 1em 0;
-  line-height: 1.6;
-}
-
-.prose :deep(ul),
-.prose :deep(ol) {
-  margin: 1em 0;
-  padding-left: 2em;
-}
-
-.prose :deep(code) {
-  background: #f6f8fa;
-  padding: 0.2em 0.4em;
-  border-radius: 3px;
-  font-family: "Monaco", monospace;
-  font-size: 85%;
-}
-
-.prose :deep(pre) {
-  background: #f6f8fa;
-  padding: 1em;
-  border-radius: 6px;
-  overflow-x: auto;
-}
-
-.prose :deep(blockquote) {
-  border-left: 4px solid #dfe2e5;
-  margin: 1em 0;
-  padding-left: 1em;
-  color: #6a737d;
+.tiptap-toolbar button:hover {
+  background: #2d2d2d;
 }
 
 .toolbar-button {
   padding: 0.5rem 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid #3c3c3c;
   border-radius: 4px;
-  background: white;
+  background: #252526;
+  color: #cccccc;
   cursor: pointer;
   font-size: 0.875rem;
   margin-left: 0.5rem;
-  transition: all 0.2s ease;
 }
 
 .toolbar-button:hover {
-  background: #f8f9fa;
+  background: #2d2d2d;
 }
 
 .toolbar-button.active {
-  background: #e9ecef;
+  background: #37373d;
 }
 
 .toolbar-button.primary {
@@ -349,42 +475,10 @@ const saveToDisk = async () => {
   background: #0255b3;
 }
 
-.toolbar-button.loading {
-  background: #f8f9fa;
-  color: #666;
-  cursor: not-allowed;
-}
-
-.toolbar-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.875rem;
-  color: #666;
-}
-
 .file-path {
-  font-family: "Monaco", monospace;
-}
-
-.branch-name {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  background: #eee;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-}
-
-.toolbar-right {
-  display: flex;
-  gap: 0.5rem;
+  color: #cccccc;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875rem;
 }
 
 .login-prompt {
@@ -393,24 +487,22 @@ const saveToDisk = async () => {
   align-items: center;
   gap: 1rem;
   padding: 2rem;
-  background: #f8f9fa;
-  border-bottom: 1px solid #eee;
+  background: #1e1e1e;
+  color: #cccccc;
 }
 
 .login-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border: 1px solid #e1e4e8;
-  border-radius: 6px;
-  background: white;
-  color: #24292e;
-  font-size: 14px;
+  border: 1px solid #3c3c3c;
+  border-radius: 4px;
+  background: #252526;
+  color: #cccccc;
   cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
 }
 
 .login-button:hover {
-  background: #f6f8fa;
+  background: #2d2d2d;
 }
 </style>

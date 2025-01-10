@@ -11,14 +11,14 @@ description: Echo Design System animation dtation
 Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam dolor lacinia.
 
 <div class="animation-section">
-  <div class="section-heading">
-    <h2>Style</h2>
-  </div>
-  <div class="section-content">
-    <div class="animation-showcase">
-      <img src="/images/animation-style.svg" alt="Animation style example" />
-    </div>
-  </div>
+ <div class="section-heading">
+<h2>Style</h2>
+</div>
+<div class="section-content">
+<div class="animation-showcase">
+<img src="/images/animation-style.svg" alt="Animation style example" />
+</div>
+</div>
 </div>
 
 <div class="animation-section">

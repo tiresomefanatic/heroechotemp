@@ -7,26 +7,69 @@ export default defineNuxtConfig({
     "@nuxtjs/tailwindcss", // CSS framework
   ],
 
-  // Content module configuration - this handles your documentation
+  // Components configuration
+  components: {
+    dirs: [
+      {
+        path: "~/components",
+        global: true,
+      },
+      {
+        path: "~/components/content",
+        global: true,
+        prefix: "Content",
+      },
+    ],
+  },
+
   content: {
-    // Enable Markdown navigation features
     navigation: {
       fields: ["navigation"],
     },
-    // Better markdown handling
+    highlight: {
+      theme: "github-dark",
+      preload: ["vue", "javascript", "typescript"],
+    },
     markdown: {
-      // Table of contents configuration
+      remarkPlugins: [],
+      rehypePlugins: [],
+      tags: {
+        p: "p",
+        a: "a",
+        blockquote: "blockquote",
+        "code-inline": "code",
+        code: "pre",
+        em: "em",
+        h1: "h1",
+        h2: "h2",
+        h3: "h3",
+        h4: "h4",
+        h5: "h5",
+        h6: "h6",
+        hr: "hr",
+        img: "img",
+        ul: "ul",
+        ol: "ol",
+        li: "li",
+        strong: "strong",
+        table: "table",
+        thead: "thead",
+        tbody: "tbody",
+        td: "td",
+        th: "th",
+        tr: "tr",
+      },
+      componentType: true,
+      mdc: true,
       toc: {
         depth: 3,
         searchDepth: 3,
       },
-      // Useful plugins for documentation
-      remarkPlugins: [
-      ],
-      rehypePlugins: [
-        "rehype-slug", // Adds IDs to headings
-        "rehype-autolink-headings", // Makes headings clickable
-      ],
+      anchorLinks: false,
+    },
+    components: {
+      global: true,
+      dirs: ["~/components/content"],
     },
   },
 
@@ -38,15 +81,15 @@ export default defineNuxtConfig({
     },
     public: {
       githubClientId: process.env.NUXT_PUBLIC_GITHUB_CLIENT_ID,
-      siteUrl: process.env.VERCEL_URL 
+      siteUrl: process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}`
-        : process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+        : process.env.NUXT_PUBLIC_SITE_URL || "http://localhost:3000",
     },
   },
 
   // Development server configuration
   devServer: {
-    port: 3000
+    port: 3000,
   },
 
   // Vercel deployment configuration
