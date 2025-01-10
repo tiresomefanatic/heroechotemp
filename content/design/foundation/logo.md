@@ -3,6 +3,9 @@ title: Logo
 description: Echo Design System logo documen
 ---
 
+<div class="design-layout">
+<div class="design-content">
+
 # Logo
 
 Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam non ipsum.
@@ -52,14 +55,8 @@ The Zig monogram serves as our icon mark, designed for recognition at smaller sc
 
 ## Zig - Small Reproduction
 
-<div class="reproduction-grid">
-  <div class="logo-dark">
-    ![Zig Small Dark](/images/zig-small-dark.svg)
-  </div>
-  <div class="logo-light">
-    ![Zig Small Light](/images/zig-small-light.svg)
-  </div>
-</div>
+![Zig Small Dark](/images/zig-small-dark.svg)
+![Zig Small Light](/images/zig-small-light.svg)
 
 ## Logo Variations
 
@@ -83,73 +80,27 @@ The Zig monogram serves as our icon mark, designed for recognition at smaller sc
 - Don't change colors
 - Don't add effects or shadows
 
+</div>
+</div>
+
 <style>
-/* Content specific styles */
-body {
-  font-family: system-ui, -apple-system, sans-serif;
-  color: #000000;
-  line-height: 1.6;
+.design-layout {
+  display: flex;
+  gap: 2rem;
 }
 
-h1 {
-  font-size: 2rem;
-  font-weight: 500;
-  margin: 2rem 0 1rem;
-}
-
-h2 {
-  font-size: 1.5rem;
-  font-weight: 500;
-  margin: 3rem 0 1.5rem;
-}
-
-h3 {
-  font-size: 1.2rem;
-  font-weight: 500;
-  margin: 1.5rem 0 1rem;
-}
-
-p {
-  margin: 1rem 0;
-  max-width: 65ch;
+.design-content {
+  flex: 1;
+  max-width: 800px;
 }
 
 img {
   max-width: 100%;
   height: auto;
   display: block;
-  margin: 2rem 0;
   background: #f5f5f5;
   padding: 2rem;
   border-radius: 4px;
-}
-
-ul {
-  margin: 1rem 0;
-  padding-left: 1.5rem;
-}
-
-li {
-  margin: 0.5rem 0;
-}
-
-.reproduction-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
   margin: 2rem 0;
-}
-
-.logo-dark {
-  background: #000;
-  padding: 2rem;
-  border-radius: 4px;
-}
-
-.logo-light {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 4px;
-  border: 1px solid #eee;
 }
 </style>
