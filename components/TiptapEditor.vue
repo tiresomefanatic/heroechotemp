@@ -1,3 +1,4 @@
+# TiptapEditor.vue
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { Editor, EditorContent } from "@tiptap/vue-3";
@@ -7,16 +8,9 @@ import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
 import Image from "@tiptap/extension-image";
 import { Extension } from "@tiptap/core";
-import { Node } from "@tiptap/core";
 import CollaborationSidebar from "~/components/CollaborationSidebar.vue";
 import { useGithub } from "~/composables/useGithub";
 import { useToast } from "~/composables/useToast";
-
-interface VersionEntry {
-  timestamp: Date;
-  content: string;
-  description: string;
-}
 
 interface Props {
   content?: string;
@@ -30,80 +24,70 @@ const emit = defineEmits<{
   (e: "error", error: Error): void;
 }>();
 
-// Initialize state management
+// State management
 const localContent = ref("");
 const originalContent = ref("");
 const isSaving = ref(false);
 const previewMode = ref(false);
-const versionHistory = ref<VersionEntry[]>([]);
 const editor = ref<Editor | null>(null);
+const isInitialContent = ref(true);
 
 // Initialize composables
 const { showToast } = useToast();
 const github = useGithub();
 const { isLoggedIn } = github;
 
-// HTML formatting function
+// Debug mode detection
+const showDebugInfo = computed(() => {
+  return process.env.NODE_ENV === "development";
+});
+
+// Format HTML while preserving structure and formatting
 const formatHTML = (html: string): string => {
-  const indent = (level: number) => "  ".repeat(level);
-  let formatted = "";
-  let level = 0;
+  // First, preserve inline formatting elements by replacing them temporarily
+  let formattedHTML = html
+    .replace(/<strong>/g, "§§STRONG§§")
+    .replace(/<\/strong>/g, "§§/STRONG§§")
+    .replace(/<em>/g, "§§EM§§")
+    .replace(/<\/em>/g, "§§/EM§§");
 
-  // First, let's extract the style tag if it exists
-  const styleMatch = html.match(/<style[\s\S]*?<\/style>/);
-  const styleTag = styleMatch ? styleMatch[0] : "";
-  let content = html.replace(/<style[\s\S]*?<\/style>/, "");
+  // Add newlines and indentation for block elements
+  formattedHTML = formattedHTML
+    .replace(/></g, ">\n<") // Add newlines between elements
+    .replace(
+      /(<div[^>]*>|<\/div>|<p>|<\/p>|<h[1-6]>|<\/h[1-6]>|<ul>|<\/ul>|<ol>|<\/ol>|<li>|<\/li>)/g,
+      (match) => `\n${match}\n`
+    )
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line, _, array) => {
+      // Calculate indentation level
+      const indentLevel = array
+        .slice(0, array.indexOf(line))
+        .reduce((count, prevLine) => {
+          if (prevLine.match(/<(div|p|h[1-6]|ul|ol|li)[^>]*>/)) count++;
+          if (prevLine.match(/<\/(div|p|h[1-6]|ul|ol|li)>/)) count--;
+          return count;
+        }, 0);
 
-  // Split into lines while preserving tags
-  const parts = content.split(/(<[^>]+>)/g);
+      return "  ".repeat(Math.max(0, indentLevel)) + line;
+    })
+    .join("\n");
 
-  parts.forEach((part) => {
-    if (!part.trim()) return; // Skip empty parts
+  // Restore inline formatting elements
+  formattedHTML = formattedHTML
+    .replace(/§§STRONG§§/g, "<strong>")
+    .replace(/§§\/STRONG§§/g, "</strong>")
+    .replace(/§§EM§§/g, "<em>")
+    .replace(/§§\/EM§§/g, "</em>");
 
-    if (part.startsWith("</")) {
-      // Closing tag
-      level--;
-      formatted += indent(level) + part + "\n";
-    } else if (part.startsWith("<")) {
-      // Opening tag
-      if (!part.match(/<(img|br|hr|input)/i) && !part.endsWith("/>")) {
-        formatted += indent(level) + part + "\n";
-        level++;
-      } else {
-        // Self-closing tag
-        formatted += indent(level) + part + "\n";
-      }
-    } else {
-      // Text content
-      formatted += indent(level) + part.trim() + "\n";
-    }
-  });
-
-  // Format style tag if it exists
-  if (styleTag) {
-    const formattedStyle = styleTag
-      .replace(/<style>\s*/, "<style>\n")
-      .replace(/\s*<\/style>/, "\n</style>")
-      .replace(/^(?!\s*$)/gm, "  ");
-    formatted += "\n" + formattedStyle;
-  }
-
-  // Add extra newlines between major sections
-  formatted = formatted
-    .replace(/(<\/div>\n)(?!<\/div>)/g, "$1\n")
-    .replace(/(<h[1-6]>)/g, "\n$1")
-    .replace(/(<div class="[^"]+">)\n/g, "$1\n\n")
-    .replace(/\n{3,}/g, "\n\n"); // Limit consecutive newlines to 2
-
-  return formatted;
+  return formattedHTML;
 };
 
-// Custom document extension
+// Custom Document extension to handle block-level elements
 const CustomDocument = Document.extend({
   content: "block+",
-  parseHTML() {
-    return [{ tag: "div" }];
-  },
 });
 
 // Initialize editor
@@ -112,71 +96,114 @@ onMounted(() => {
     extensions: [
       StarterKit.configure({
         document: false,
-        paragraph: {
-          HTMLAttributes: {
-            class: null,
-          },
-        },
       }),
       CustomDocument,
       Image.configure({
         inline: true,
-        HTMLAttributes: {
-          class: null,
-        },
       }),
     ],
-    content: props.content,
     editorProps: {
       attributes: {
         class: "prose-editor",
         spellcheck: "false",
       },
-      parseOptions: {
-        preserveWhitespace: "full",
-      },
     },
     onUpdate: ({ editor: ed }) => {
+      // Get new content and format it
       const rawContent = ed.getHTML();
       const formattedContent = formatHTML(rawContent);
-      if (formattedContent !== localContent.value) {
-        localContent.value = formattedContent;
-        emit("update:content", formattedContent);
-      }
+
+      // Update local content
+      localContent.value = formattedContent;
+
+      // Log content state for debugging
+      console.log("Content Update:", {
+        raw: rawContent.slice(0, 100),
+        formatted: formattedContent.slice(0, 100),
+        hasInlineFormatting:
+          formattedContent.includes("<strong>") ||
+          formattedContent.includes("<em>"),
+      });
+
+      // Emit update event
+      emit("update:content", formattedContent);
     },
   });
 
   // Set initial content
   if (props.content) {
     const formattedContent = formatHTML(props.content);
+
+    console.log("Setting initial content:", {
+      contentLength: formattedContent.length,
+      hasFormatting:
+        formattedContent.includes("<strong>") ||
+        formattedContent.includes("<em>"),
+    });
+
+    // Initialize editor and content states
+    editor.value.commands.setContent(formattedContent);
     localContent.value = formattedContent;
     originalContent.value = formattedContent;
   }
 });
 
-// Watch for content changes
+// Watch for content changes from parent
 watch(
   () => props.content,
-  (newContent) => {
-    if (newContent !== undefined && newContent !== localContent.value) {
+  (newContent, oldContent) => {
+    if (newContent !== undefined && editor.value) {
       const formattedContent = formatHTML(newContent);
+
+      // Store cursor position
+      const currentCursor = editor.value.state.selection;
+
+      // Update editor content
+      editor.value.commands.setContent(formattedContent);
       localContent.value = formattedContent;
-      originalContent.value = formattedContent;
-      if (editor.value) {
-        editor.value.commands.setContent(formattedContent);
+
+      // Only set original content on initial load
+      if (isInitialContent.value) {
+        originalContent.value = formattedContent;
+        isInitialContent.value = false;
       }
+
+      // Restore cursor position
+      if (currentCursor) {
+        editor.value.commands.setTextSelection(currentCursor.from);
+      }
+
+      console.log("Content updated from prop:", {
+        hasChanges: hasChanges.value,
+        hasFormatting:
+          formattedContent.includes("<strong>") ||
+          formattedContent.includes("<em>"),
+      });
     }
-  },
-  { immediate: true }
+  }
 );
 
+// Improved change detection
 const hasChanges = computed(() => {
-  const normalize = (str: string) => str.replace(/\s+/g, " ").trim();
-  const current = normalize(localContent.value);
-  const original = normalize(originalContent.value);
-  return current !== original;
+  if (!localContent.value || !originalContent.value) {
+    return false;
+  }
+
+  // Compare formatted content
+  const isDifferent = localContent.value !== originalContent.value;
+
+  // Log change detection details
+  console.log("Change Detection:", {
+    isDifferent,
+    localFormatting: localContent.value.match(/<(strong|em)>/g)?.length || 0,
+    originalFormatting:
+      originalContent.value.match(/<(strong|em)>/g)?.length || 0,
+  });
+
+  return isDifferent;
 });
 
+// Preview content
 const previewContent = computed(() => {
   return localContent.value || "";
 });
@@ -191,19 +218,10 @@ const saveToDisk = async () => {
       throw new Error("Please log in to GitHub first");
     }
 
-    const formattedContent = formatHTML(localContent.value);
-    emit("save", formattedContent);
-    originalContent.value = formattedContent;
-
-    versionHistory.value.push({
-      timestamp: new Date(),
-      content: formattedContent,
-      description: `Update ${props.filePath}`,
-    });
-
-    if (versionHistory.value.length > 10) {
-      versionHistory.value.shift();
-    }
+    // Ensure content is properly formatted before saving
+    const contentToSave = formatHTML(localContent.value);
+    emit("save", contentToSave);
+    originalContent.value = contentToSave;
   } catch (error) {
     console.error("Save error:", error);
     showToast({
@@ -228,6 +246,17 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="editor-wrapper">
+    <!-- Debug info panel -->
+    <div v-if="showDebugInfo" class="debug-info">
+      <div class="debug-panel">
+        <pre>Has changes: {{ hasChanges }}</pre>
+        <pre>Local content length: {{ localContent?.length }}</pre>
+        <pre>Original content length: {{ originalContent?.length }}</pre>
+        <pre>Preview mode: {{ previewMode }}</pre>
+      </div>
+    </div>
+
+    <!-- Login prompt -->
     <div v-if="!isLoggedIn" class="login-prompt">
       <p class="login-message">Please sign in with GitHub to edit this file</p>
       <button @click="github.login" class="login-button">
@@ -235,6 +264,7 @@ onBeforeUnmount(() => {
       </button>
     </div>
 
+    <!-- Editor layout -->
     <div v-else class="editor-layout">
       <div class="editor-main">
         <div class="editor-toolbar">
@@ -333,6 +363,26 @@ onBeforeUnmount(() => {
   background: white;
 }
 
+/* Debug panel styles */
+.debug-info {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 12px;
+  max-width: 400px;
+  overflow: auto;
+}
+
+.debug-panel pre {
+  margin: 5px 0;
+  white-space: pre-wrap;
+}
+
 .editor-layout {
   flex: 1;
   display: flex;
@@ -363,6 +413,11 @@ onBeforeUnmount(() => {
   background: white;
 }
 
+.markdown-editor.has-changes {
+  background: #fafafa;
+}
+
+/* Preview styles */
 .preview-wrapper {
   position: absolute;
   top: 0;
@@ -387,62 +442,6 @@ onBeforeUnmount(() => {
   font-size: 16px;
   line-height: 1.5;
   color: #000000;
-  white-space: pre-wrap;
-}
-
-/* Common content styles */
-.prose-editor h1,
-.preview-content h1 {
-  font-size: 2em;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
-  color: #000000;
-}
-
-.prose-editor h2,
-.preview-content h2 {
-  font-size: 1.5em;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
-  color: #000000;
-}
-
-.prose-editor h3,
-.preview-content h3 {
-  font-size: 1.25em;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
-  color: #000000;
-}
-
-.prose-editor p,
-.preview-content p {
-  margin: 1em 0;
-  color: #000000;
-}
-
-.prose-editor ul,
-.preview-content ul {
-  margin: 1em 0;
-  padding-left: 1.5em;
-  color: #000000;
-}
-
-.prose-editor li,
-.preview-content li {
-  margin: 0.5em 0;
-  color: #000000;
-}
-
-.prose-editor img,
-.preview-content img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 1.5em 0;
-  background: #f5f5f5;
-  padding: 2rem;
-  border-radius: 4px;
 }
 
 /* Toolbar styles */
@@ -526,5 +525,48 @@ onBeforeUnmount(() => {
 
 .login-button:hover {
   background: #2d2d2d;
+}
+
+/* Editor styles */
+.prose-editor h1 {
+  font-size: 2em;
+  font-weight: 600;
+  margin: 1em 0 0.5em;
+}
+
+.prose-editor h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin: 1em 0 0.5em;
+}
+
+.prose-editor h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin: 1em 0 0.5em;
+}
+
+.prose-editor p {
+  margin: 1em 0;
+}
+
+.prose-editor ul,
+.prose-editor ol {
+  margin: 1em 0;
+  padding-left: 1.5em;
+}
+
+.prose-editor li {
+  margin: 0.5em 0;
+}
+
+.prose-editor img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5em 0;
+  background: #f5f5f5;
+  padding: 2rem;
+  border-radius: 4px;
 }
 </style>

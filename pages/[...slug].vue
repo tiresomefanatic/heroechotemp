@@ -1,4 +1,4 @@
-// [...slug].vue
+# [...slug].vue
 <template>
   <div class="page-wrapper">
     <ClientOnly>
@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { queryContent } from "#imports";
 import { useGithub } from "~/composables/useGithub";
@@ -59,22 +59,26 @@ import TiptapEditor from "~/components/TiptapEditor.vue";
 import DesignSidebar from "~/components/DesignSidebar.vue";
 import Header from "~/components/Header.vue";
 
-// Initialize GitHub functionality
+// Initialize composables and services
 const { getRawContent, saveFileContent, isLoggedIn, currentBranch } =
   useGithub();
 const { showToast } = useToast();
 
+// State management
 const loading = ref(false);
 const isEditing = ref(false);
-const editorContent = ref("");
+const editorContent = ref(""); // Holds the current editor content
+const originalContent = ref(""); // Store the initial content for comparison
 
-// Compute whether to show sidebar
-const showSidebar = computed(() => path !== "");
-
+// Route handling
 const route = useRoute();
 const slug = route.params.slug || [];
 const path = Array.isArray(slug) ? slug.join("/") : slug;
 
+// Compute whether to show sidebar
+const showSidebar = computed(() => path !== "");
+
+// Content queries for initial page load
 const { data, refresh } = await useAsyncData(`content-${path}`, () => {
   if (!path) {
     return queryContent().where({ _path: "/" }).findOne();
@@ -84,28 +88,39 @@ const { data, refresh } = await useAsyncData(`content-${path}`, () => {
     .findOne();
 });
 
+// Compute the content file path
 const contentPath = computed(() => {
   if (!path) return "content/index.md";
   return `content/${path}.md`;
 });
 
-// Load content from current branch
+// Load content from GitHub
 const loadContent = async () => {
   loading.value = true;
   try {
     console.log(`Loading content from branch: ${currentBranch.value}`);
+
+    // Fetch the raw content from GitHub
     const content = await getRawContent(
       "tiresomefanatic",
       "heroechotemp",
       contentPath.value,
       currentBranch.value
     );
+
+    // Store both the editor content and original content
     editorContent.value = content;
+    originalContent.value = content; // Keep track of the original content
+
+    await refresh();
+
+    console.log("Content loaded successfully:", {
+      contentPath: contentPath.value,
+      contentLength: content.length,
+      excerpt: content.slice(0, 50),
+    });
   } catch (error) {
-    console.error(
-      `Error loading content from branch ${currentBranch.value}:`,
-      error
-    );
+    console.error(`Error loading content:`, error);
     showToast({
       title: "Error",
       message: `Failed to load content from branch: ${currentBranch.value}`,
@@ -128,7 +143,18 @@ const handleEditClick = async () => {
   }
 
   isEditing.value = true;
-  await loadContent();
+  await loadContent(); // This will set both editorContent and originalContent
+};
+
+// Handle content changes from the editor
+const handleContentChange = (newContent: string) => {
+  console.log("Content changed:", {
+    previousLength: editorContent.value.length,
+    newLength: newContent.length,
+    hasChanged: newContent !== originalContent.value,
+  });
+
+  editorContent.value = newContent;
 };
 
 // Handle content save
@@ -159,13 +185,19 @@ const handleSave = async (content: string) => {
         message: `Content saved successfully to branch: ${currentBranch.value}`,
         type: "success",
       });
-      isEditing.value = false;
+
+      // Update both editor and original content after successful save
+      originalContent.value = content;
+      editorContent.value = content;
+
+      // Refresh the page content and exit edit mode
       await refresh();
+      isEditing.value = false;
     } else {
       throw new Error(`Failed to save to branch: ${currentBranch.value}`);
     }
   } catch (error) {
-    console.error(`Error saving to branch ${currentBranch.value}:`, error);
+    console.error(`Error saving content:`, error);
     showToast({
       title: "Error",
       message: `Failed to save to branch: ${currentBranch.value}`,
@@ -174,13 +206,8 @@ const handleSave = async (content: string) => {
   }
 };
 
-// Handle content change
-const handleContentChange = (newContent: string) => {
-  editorContent.value = newContent;
-};
-
-// Handle editor error
-const handleEditorError = (error) => {
+// Handle editor errors
+const handleEditorError = (error: Error) => {
   showToast({
     title: "Editor Error",
     message: error.message,
@@ -189,21 +216,40 @@ const handleEditorError = (error) => {
 };
 
 // Handle exit editor
-const exitEditor = () => {
+const exitEditor = async () => {
+  // Reload the content to discard changes
+  await loadContent();
   isEditing.value = false;
 };
 
+// Watch for editing mode changes
+watch(
+  [editorContent, isEditing],
+  async ([newContent, editing], [oldContent, wasEditing]) => {
+    if (editing && !wasEditing) {
+      await loadContent();
+    }
+  }
+);
+
 // Watch for branch changes
-watch(currentBranch, async (newBranch) => {
-  if (isEditing.value) {
-    console.log(`Branch changed to: ${newBranch}, reloading content...`);
+watch(currentBranch, async (newBranch, oldBranch) => {
+  if (newBranch !== oldBranch && isEditing.value) {
+    console.log(
+      `Branch changed from ${oldBranch} to ${newBranch}, reloading content...`
+    );
     await loadContent();
   }
+});
+
+// Load initial content on mount
+onMounted(async () => {
+  await loadContent();
 });
 </script>
 
 <style>
-/* Global prose styles to match Tiptap editor */
+/* Global prose styles */
 .prose {
   max-width: 720px;
   margin: 0 auto;
