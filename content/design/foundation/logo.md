@@ -14,7 +14,7 @@
   
   <p>The Zig stands for motion, spontaneity and energy. It speaks to the restless energy of the future generations and their desire to create their perfect world.</p>
   
-  <p>The Zig is the graphic encapsulation of our narrative and serves to identify everything that we represent. It is a living object that's always in motion. The V approximation represents the 'resting' state of the Zig.</p>
+  <p>The Zig is the graphic encapsulation of our narrative and serves to identify everything that we represent. It is a living object that's always in motion. The V approximation represents the 'resting' state of the Zi.</p>
 </div>
 
 <h2>Zig - Monogram</h2>

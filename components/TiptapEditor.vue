@@ -1,4 +1,3 @@
-# TiptapEditor.vue
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { Editor, EditorContent } from "@tiptap/vue-3";
@@ -8,6 +7,7 @@ import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
 import Image from "@tiptap/extension-image";
 import { Extension } from "@tiptap/core";
+import { Node } from "@tiptap/core";
 import CollaborationSidebar from "~/components/CollaborationSidebar.vue";
 import { useGithub } from "~/composables/useGithub";
 import { useToast } from "~/composables/useToast";
@@ -43,20 +43,82 @@ const { showToast } = useToast();
 const github = useGithub();
 const { isLoggedIn } = github;
 
-// Initialize Tiptap editor
+// HTML formatting function
+const formatHTML = (html: string): string => {
+  const indent = (level: number) => "  ".repeat(level);
+  let formatted = "";
+  let level = 0;
+
+  // First, let's extract the style tag if it exists
+  const styleMatch = html.match(/<style[\s\S]*?<\/style>/);
+  const styleTag = styleMatch ? styleMatch[0] : "";
+  let content = html.replace(/<style[\s\S]*?<\/style>/, "");
+
+  // Split into lines while preserving tags
+  const parts = content.split(/(<[^>]+>)/g);
+
+  parts.forEach((part) => {
+    if (!part.trim()) return; // Skip empty parts
+
+    if (part.startsWith("</")) {
+      // Closing tag
+      level--;
+      formatted += indent(level) + part + "\n";
+    } else if (part.startsWith("<")) {
+      // Opening tag
+      if (!part.match(/<(img|br|hr|input)/i) && !part.endsWith("/>")) {
+        formatted += indent(level) + part + "\n";
+        level++;
+      } else {
+        // Self-closing tag
+        formatted += indent(level) + part + "\n";
+      }
+    } else {
+      // Text content
+      formatted += indent(level) + part.trim() + "\n";
+    }
+  });
+
+  // Format style tag if it exists
+  if (styleTag) {
+    const formattedStyle = styleTag
+      .replace(/<style>\s*/, "<style>\n")
+      .replace(/\s*<\/style>/, "\n</style>")
+      .replace(/^(?!\s*$)/gm, "  ");
+    formatted += "\n" + formattedStyle;
+  }
+
+  // Add extra newlines between major sections
+  formatted = formatted
+    .replace(/(<\/div>\n)(?!<\/div>)/g, "$1\n")
+    .replace(/(<h[1-6]>)/g, "\n$1")
+    .replace(/(<div class="[^"]+">)\n/g, "$1\n\n")
+    .replace(/\n{3,}/g, "\n\n"); // Limit consecutive newlines to 2
+
+  return formatted;
+};
+
+// Custom document extension
+const CustomDocument = Document.extend({
+  content: "block+",
+  parseHTML() {
+    return [{ tag: "div" }];
+  },
+});
+
+// Initialize editor
 onMounted(() => {
   editor.value = new Editor({
     extensions: [
       StarterKit.configure({
-        document: {
-          preserveWhitespace: "full",
-        },
+        document: false,
         paragraph: {
           HTMLAttributes: {
             class: null,
           },
         },
       }),
+      CustomDocument,
       Image.configure({
         inline: true,
         HTMLAttributes: {
@@ -70,76 +132,56 @@ onMounted(() => {
         class: "prose-editor",
         spellcheck: "false",
       },
-      transformPastedHTML: (html) => {
-        return html
-          .replace(/<p class="editor-paragraph">/g, "<p>")
-          .replace(/\s+>/g, ">")
-          .replace(/>\s+</g, "><")
-          .trim();
+      parseOptions: {
+        preserveWhitespace: "full",
       },
     },
     onUpdate: ({ editor: ed }) => {
-      const newContent = ed.getHTML();
-      if (newContent !== localContent.value) {
-        localContent.value = newContent;
-        emit("update:content", newContent);
+      const rawContent = ed.getHTML();
+      const formattedContent = formatHTML(rawContent);
+      if (formattedContent !== localContent.value) {
+        localContent.value = formattedContent;
+        emit("update:content", formattedContent);
       }
     },
   });
 
   // Set initial content
   if (props.content) {
-    localContent.value = props.content;
-    originalContent.value = props.content;
+    const formattedContent = formatHTML(props.content);
+    localContent.value = formattedContent;
+    originalContent.value = formattedContent;
   }
 });
 
-// Clean up HTML before saving
-const cleanupHtml = (html: string) => {
-  return html
-    .replace(/<p class="editor-paragraph">/g, "<p>")
-    .replace(/\s+>/g, ">")
-    .replace(/>\s+</g, "><")
-    .replace(/&nbsp;/g, " ")
-    .trim();
-};
-
-// Watch for content changes from parent
+// Watch for content changes
 watch(
   () => props.content,
   (newContent) => {
     if (newContent !== undefined && newContent !== localContent.value) {
-      localContent.value = newContent;
-      originalContent.value = newContent;
+      const formattedContent = formatHTML(newContent);
+      localContent.value = formattedContent;
+      originalContent.value = formattedContent;
       if (editor.value) {
-        editor.value.commands.setContent(newContent, false);
+        editor.value.commands.setContent(formattedContent);
       }
-      versionHistory.value = [
-        {
-          timestamp: new Date(),
-          content: newContent,
-          description: "Initial version",
-        },
-      ];
     }
   },
   { immediate: true }
 );
 
-// Computed properties
 const hasChanges = computed(() => {
-  const normalize = (str: string) => str.trim().replace(/\s+/g, " ");
+  const normalize = (str: string) => str.replace(/\s+/g, " ").trim();
   const current = normalize(localContent.value);
   const original = normalize(originalContent.value);
   return current !== original;
 });
 
 const previewContent = computed(() => {
-  if (!localContent.value) return "";
-  return localContent.value; // Return the HTML content directly for preview
+  return localContent.value || "";
 });
 
-// Save content function
+// Save content
 const saveToDisk = async () => {
   if (!hasChanges.value || isSaving.value) return;
 
@@ -149,13 +191,13 @@ const saveToDisk = async () => {
       throw new Error("Please log in to GitHub first");
     }
 
-    const cleanContent = cleanupHtml(localContent.value);
-    emit("save", cleanContent);
-    originalContent.value = cleanContent;
+    const formattedContent = formatHTML(localContent.value);
+    emit("save", formattedContent);
+    originalContent.value = formattedContent;
 
     versionHistory.value.push({
       timestamp: new Date(),
-      content: cleanContent,
+      content: formattedContent,
       description: `Update ${props.filePath}`,
     });
 
@@ -176,7 +218,7 @@ const saveToDisk = async () => {
   }
 };
 
-// Cleanup on unmount
+// Cleanup
 onBeforeUnmount(() => {
   if (editor.value) {
     editor.value.destroy();
@@ -321,7 +363,6 @@ onBeforeUnmount(() => {
   background: white;
 }
 
-/* Preview styles */
 .preview-wrapper {
   position: absolute;
   top: 0;
@@ -340,13 +381,13 @@ onBeforeUnmount(() => {
     Arial, sans-serif;
 }
 
-/* Editor styles */
 .prose-editor {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   color: #000000;
+  white-space: pre-wrap;
 }
 
 /* Common content styles */
@@ -381,9 +422,7 @@ onBeforeUnmount(() => {
 }
 
 .prose-editor ul,
-.prose-editor ol,
-.preview-content ul,
-.preview-content ol {
+.preview-content ul {
   margin: 1em 0;
   padding-left: 1.5em;
   color: #000000;
@@ -395,7 +434,6 @@ onBeforeUnmount(() => {
   color: #000000;
 }
 
-/* Images */
 .prose-editor img,
 .preview-content img {
   max-width: 100%;
@@ -405,42 +443,6 @@ onBeforeUnmount(() => {
   background: #f5f5f5;
   padding: 2rem;
   border-radius: 4px;
-}
-
-/* Layout classes */
-.design-layout {
-  display: flex;
-  gap: 2rem;
-}
-
-.design-content {
-  flex: 1;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-/* Section styles */
-.logo-section {
-  margin: 2rem 0;
-}
-
-.reproduction-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-}
-
-.logo-dark {
-  background: #000;
-  padding: 2rem;
-  border-radius: 4px;
-}
-
-.logo-light {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 4px;
-  border: 1px solid #eee;
 }
 
 /* Toolbar styles */
