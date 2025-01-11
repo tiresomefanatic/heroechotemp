@@ -16,6 +16,7 @@ import BulletList from "@tiptap/extension-bullet-list";
 import OrderedList from "@tiptap/extension-ordered-list";
 import ListItem from "@tiptap/extension-list-item";
 import HardBreak from "@tiptap/extension-hard-break";
+import { Node as ProsemirrorNode } from "@tiptap/pm/model";
 
 interface VersionEntry {
   timestamp: Date;
@@ -48,19 +49,60 @@ const { showToast } = useToast();
 const github = useGithub();
 const { isLoggedIn } = github;
 
-// Create Octokit instance with stored token
-const getOctokit = () => {
-  if (!process.client) return null;
-  const token = localStorage.getItem("github_token");
-  if (!token) return null;
-  return new Octokit({ auth: token });
+// Handle tab key
+const handleTab = (editor: Editor) => {
+  const { state } = editor;
+  const { selection } = state;
+  const { $head, $anchor } = selection;
+
+  // If we have a selection, indent/outdent the selected lines
+  if (!selection.empty) {
+    if ($head.pos === $anchor.pos) {
+      return false;
+    }
+    const lines = state.doc.textBetween($anchor.pos, $head.pos).split("\n");
+    const indentedLines = lines.map((line) => `  ${line}`);
+    const newText = indentedLines.join("\n");
+    editor.chain().focus().insertContent(newText).run();
+    return true;
+  }
+
+  // If no selection, insert two spaces
+  editor.chain().focus().insertContent("  ").run();
+  return true;
 };
+
+// Custom extension for preserving markdown
+const CustomDocument = Document.extend({
+  content: "block+",
+  parseHTML() {
+    return [
+      {
+        tag: 'div[class="design-layout"]',
+        preserveWhitespace: "full",
+      },
+      {
+        tag: 'div[class="design-content"]',
+        preserveWhitespace: "full",
+      },
+    ];
+  },
+});
 
 // Initialize Tiptap editor
 onMounted(() => {
   editor.value = new Editor({
     extensions: [
-      Document,
+      StarterKit.configure({
+        document: false,
+        paragraph: false,
+        text: false,
+        bulletList: false,
+        orderedList: false,
+        listItem: false,
+        codeBlock: false,
+      }),
+      CustomDocument,
       Paragraph.configure({
         HTMLAttributes: {
           class: "editor-paragraph",
@@ -88,17 +130,6 @@ onMounted(() => {
           class: "editor-list-item",
         },
       }),
-      StarterKit.configure({
-        document: false,
-        paragraph: false,
-        text: false,
-        bulletList: false,
-        orderedList: false,
-        listItem: false,
-        codeBlock: false,
-        //  horizontalRule: true,
-        //  hardBreak: true,
-      }),
     ],
     content: props.content,
     editorProps: {
@@ -106,9 +137,14 @@ onMounted(() => {
         class: "prose-editor",
         spellcheck: "false",
       },
-      handleDrop: (view, event, slice, moved) => {
-        event.preventDefault();
-        return true;
+      handleKeyDown: (view, event) => {
+        if (event.key === "Tab") {
+          event.preventDefault();
+          if (editor.value) {
+            return handleTab(editor.value);
+          }
+        }
+        return false;
       },
       handlePaste: (view, event) => {
         const text = event.clipboardData?.getData("text/plain");
@@ -120,9 +156,10 @@ onMounted(() => {
         return false;
       },
     },
-    onTransaction: ({ editor }) => {
-      localContent.value = editor.getHTML();
-      emit("update:content", editor.getHTML());
+    onUpdate: ({ editor: ed }) => {
+      const content = ed.getHTML();
+      localContent.value = content;
+      emit("update:content", content);
     },
   });
 });
@@ -318,6 +355,7 @@ const saveToDisk = async () => {
   outline: none !important;
   min-height: 100vh;
   overflow-y: auto;
+  tab-size: 2;
 }
 
 .prose-editor p {
@@ -342,6 +380,11 @@ const saveToDisk = async () => {
   color: #d4d4d4 !important;
 }
 
+.prose-editor .frontmatter {
+  color: #808080 !important;
+  font-style: italic !important;
+}
+
 .editor-code-block {
   background: #2d2d2d !important;
   color: #d4d4d4 !important;
@@ -363,6 +406,11 @@ const saveToDisk = async () => {
 
 .editor-list-item {
   margin: 0 !important;
+}
+
+.prose-editor div[class="design-layout"],
+.prose-editor div[class="design-content"] {
+  white-space: pre-wrap !important;
 }
 </style>
 
@@ -473,6 +521,16 @@ const saveToDisk = async () => {
 
 .toolbar-button.primary:hover {
   background: #0255b3;
+}
+
+.toolbar-button.primary:hover {
+  background: #0255b3;
+}
+
+.toolbar-button.loading {
+  background: #2d2d2d;
+  color: #999;
+  cursor: not-allowed;
 }
 
 .file-path {
