@@ -1,65 +1,35 @@
----
-title: Typography
-description: Echo Design System typography doc
----
-
-<div class="design-layout">
-<div class="design-content">
-
-# Typography
-
-Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam dolor lacinia.
-
-## Primary typeface
-
-### use of PP Neue Montreal as our typeface. It adds just the right touch of elegance and modernity to all our communications.
-
-## Typeface weight
-
-PP Neue Montreal Thin
-
-PP Neue Montreal Light
-
-PP Neue Montreal Book
-
-PP Neue Montreal Regular
-
-PP Neue Montreal Medium
-
-PP Neue Montreal Semibold
-
-PP Neue Montreal Bold
-
-## Line weight
-
-### Headings are set in\
-PP Neue Montreal Bold\
-with the line spacing\
-equal to the Type size.
-
- Sub-headings are set in\
-PP Neue Montreal Medium\
-with the line spacing\
-equal to the Type size.
-
-## Kerning and tracking
-
-### Headings are kerned Optically with a tracking value of -10 points.
-
-Sub-headings are kerned Optically with default tracking.
-
-## Gravity
-
-PP Neue Montreal Thin 30°
-
-PP Neue Montreal Book 20°
-
-PP Neue Montreal Medium 10°
-
-PP Neue Montreal Bold 0°
-
-The VDA UI is an engaging and distinctive way to demonstrate the dynamic nature of our brand identity. The intentional slant captures attention, reinforcing the establishment of our branding across various touchpoints.
-
-The angle of the slant correlates with the weight of the typeface. For example, PP Neue Montreal Bold carries a sense of readiness, stability, and grounding. Alternatively, PP Neue Montreal Thin conveys a feeling of movement, dynamism, and potential energy.
-
-These angles are not strict rules but rather examples of how font weight can influence the tilt angle.
+<div style="max-width: 1200px; margin: 0 auto; padding: 0;">
+<h1 style="font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem;">Typography</h1>
+<div style="display: grid; grid-template-columns: 240px 1fr; gap: 24px 64px; margin-top: 3rem;">
+<div>
+<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Primary typeface</h2>
+</div>
+<div style="max-width: 800px;">
+<img src="/images/type-1.png" alt="Primary typeface section" style="width: 100%; margin-bottom: 1.5rem;" />
+</div>
+<div>
+<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Typeface weight</h2>
+</div>
+<div style="max-width: 800px;">
+<img src="/images/type-2.png" alt="Typeface weight section" style="width: 100%; margin-bottom: 1.5rem;" />
+</div>
+<div>
+<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Line weight</h2>
+</div>
+<div style="max-width: 800px;">
+<img src="/images/type-3.png" alt="Line weight section" style="width: 100%; margin-bottom: 1.5rem;" />
+</div>
+<div>
+<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Kerning and tracking</h2>
+</div>
+<div style="max-width: 800px;">
+<img src="/images/type-4.png" alt="Kerning and tracking section" style="width: 100%; margin-bottom: 1.5rem;" />
+</div>
+<div>
+<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Gravity</h2>
+</div>
+<div style="max-width: 800px;">
+<img src="/images/type-5.png" alt="Gravity section" style="width: 100%; margin-bottom: 1.5rem;" />
+</div>
+</div>
+</div>

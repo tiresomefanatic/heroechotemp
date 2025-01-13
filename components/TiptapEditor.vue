@@ -333,6 +333,7 @@ const handleRawContentChange = (event: Event) => {
 watch(rawMode, (newValue) => {
   if (editor.value) {
     if (!newValue) {
+      // When switching from raw mode back to normal mode
       editor.value.commands.setContent(localContent.value, false, {
         preserveWhitespace: "full",
       });
@@ -347,17 +348,14 @@ watch(
   (newContent) => {
     if (!editor.value || newContent === undefined) return;
 
-    // Get current cursor position
     const { from, to } = editor.value.state.selection;
-
-    const currentContent = editor.value.getHTML();
     const parsedContent = parseMarkdownToHTML(newContent);
 
     // Only update if content actually changed
+    const currentContent = editor.value.getHTML();
     if (currentContent !== parsedContent) {
       editor.value.commands.setContent(parsedContent, false);
 
-      // Restore cursor position after content update
       setTimeout(() => {
         if (editor.value) {
           editor.value.commands.setTextSelection({ from, to });
@@ -365,11 +363,10 @@ watch(
       }, 0);
     }
 
-    // Update local state
+    // Update local state without affecting original content
     const formattedContent = formatHTML(parsedContent);
     localContent.value = formattedContent;
     previewContent.value = formattedContent;
-    originalContent.value = formattedContent;
   },
   { deep: true }
 );
@@ -446,30 +443,59 @@ onBeforeUnmount(() => {
           </div>
 
           <div class="toolbar-right">
-            <button
-              class="toolbar-button"
-              :class="{ active: rawMode }"
-              @click="rawMode = !rawMode"
-            >
-              {{ rawMode ? "Normal" : "Raw" }}
-            </button>
+            <!-- Editor View -->
+            <template v-if="!previewMode && !rawMode">
+              <button class="toolbar-button" @click="rawMode = true">
+                Raw
+              </button>
+              <button class="toolbar-button" @click="previewMode = true">
+                Preview
+              </button>
+              <button
+                v-if="hasChanges && !isSaving"
+                class="toolbar-button primary"
+                @click="saveToDisk"
+              >
+                Commit Changes
+              </button>
+            </template>
 
-            <button
-              class="toolbar-button"
-              :class="{ active: previewMode }"
-              @click="previewMode = !previewMode"
-              v-if="!rawMode"
-            >
-              {{ previewMode ? "Edit" : "Preview" }}
-            </button>
+            <!-- Raw View -->
+            <template v-if="rawMode">
+              <button class="toolbar-button" @click="rawMode = false">
+                Normal
+              </button>
+              <button
+                class="toolbar-button"
+                @click="
+                  previewMode = true;
+                  rawMode = false;
+                "
+              >
+                Preview
+              </button>
+              <button
+                v-if="hasChanges && !isSaving"
+                class="toolbar-button primary"
+                @click="saveToDisk"
+              >
+                Commit Changes
+              </button>
+            </template>
 
-            <button
-              v-if="hasChanges && !isSaving && !previewMode"
-              class="toolbar-button primary"
-              @click="saveToDisk"
-            >
-              Commit Changes
-            </button>
+            <!-- Preview View -->
+            <template v-if="previewMode">
+              <button class="toolbar-button" @click="previewMode = false">
+                Edit
+              </button>
+              <button
+                v-if="hasChanges && !isSaving"
+                class="toolbar-button primary"
+                @click="saveToDisk"
+              >
+                Commit Changes
+              </button>
+            </template>
 
             <button v-if="isSaving" class="toolbar-button loading" disabled>
               Saving...
@@ -478,6 +504,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="editor-content">
+          <!-- Editor View -->
           <template v-if="!previewMode && !rawMode">
             <div class="tiptap-toolbar" v-if="editor">
               <button
@@ -541,6 +568,7 @@ onBeforeUnmount(() => {
             />
           </template>
 
+          <!-- Raw View -->
           <div v-else-if="rawMode" class="raw-content-wrapper">
             <textarea
               v-model="localContent"
@@ -550,6 +578,7 @@ onBeforeUnmount(() => {
             ></textarea>
           </div>
 
+          <!-- Preview View -->
           <div v-else class="preview-wrapper">
             <div class="prose" v-html="previewContent"></div>
           </div>

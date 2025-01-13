@@ -9,7 +9,7 @@
       </div>
       <div style="flex: 2;">
         <div style="background: #f5f5f5; padding: 2rem; border-radius: 4px;">
-          <img src="/api/placeholder/800/400" alt="Logo Construction" style="width: 100%; height: auto; display: block;" />
+          <img src="/images/logo-construction.png" alt="Logo Construction" style="width: 100%; height: auto; display: block;" />
         </div>
         <h3 style="font-size: 1.25rem; font-weight: 600; margin: 1rem 0;">We call our symbol The Zig</h3>
         <p style="margin: 1rem 0; line-height: 1.6;">The Zig stands for motion, spontaneity and energy. It speaks to the restless energy of the future generations and their desire to create their perfect world.</p>
@@ -23,7 +23,7 @@
       </div>
       <div style="flex: 2;">
         <div style="background: #f5f5f5; padding: 2rem; border-radius: 4px;">
-          <img src="/api/placeholder/800/400" alt="Zig Monogram" style="width: 100%; height: auto; display: block;" />
+          <img src="/images/zig-monogram.png" alt="Zig Monogram" style="width: 100%; height: auto; display: block;" />
         </div>
         <p style="margin: 1rem 0; line-height: 1.6;">The Zig monogram serves as our icon mark, designed for recognition at smaller scales and as a memorable brand element.</p>
         <ul style="list-style: none; padding: 0; margin: 1rem 0;">
@@ -41,7 +41,7 @@
       </div>
       <div style="flex: 2;">
         <div style="background: #f5f5f5; padding: 2rem; border-radius: 4px;">
-          <img src="/api/placeholder/800/400" alt="Clearspaces" style="width: 100%; height: auto; display: block;" />
+          <img src="/images/zig-clearspaces.png" alt="Clearspaces" style="width: 100%; height: auto; display: block;" />
         </div>
         <ul style="list-style: none; padding: 0; margin: 1rem 0;">
           <li style="margin: 0.5rem 0; line-height: 1.6;"><strong>Minimum Clearspace</strong>: Equal to the height of the Zig monogram</li>
@@ -57,7 +57,7 @@
       </div>
       <div style="flex: 2;">
         <div style="background: #f5f5f5; padding: 2rem; border-radius: 4px;">
-          <img src="/api/placeholder/800/400" alt="Alignment" style="width: 100%; height: auto; display: block;" />
+          <img src="/images/zig-alignment.png" alt="Alignment" style="width: 100%; height: auto; display: block;" />
         </div>
         <h3 style="font-size: 1.25rem; font-weight: 600; margin: 1rem 0;">Horizontal Alignment</h3>
         <ul style="list-style: none; padding: 0; margin: 1rem 0;">

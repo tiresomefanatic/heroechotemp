@@ -1148,6 +1148,98 @@ function isEqual(object1, object2, hashOptions = {}) {
   return false;
 }
 
+function diff(obj1, obj2, opts = {}) {
+  const h1 = _toHashedObject(obj1, opts);
+  const h2 = _toHashedObject(obj2, opts);
+  return _diff(h1, h2, opts);
+}
+function _diff(h1, h2, opts = {}) {
+  const diffs = [];
+  const allProps = /* @__PURE__ */ new Set([
+    ...Object.keys(h1.props || {}),
+    ...Object.keys(h2.props || {})
+  ]);
+  if (h1.props && h2.props) {
+    for (const prop of allProps) {
+      const p1 = h1.props[prop];
+      const p2 = h2.props[prop];
+      if (p1 && p2) {
+        diffs.push(..._diff(h1.props?.[prop], h2.props?.[prop], opts));
+      } else if (p1 || p2) {
+        diffs.push(
+          new DiffEntry((p2 || p1).key, p1 ? "removed" : "added", p2, p1)
+        );
+      }
+    }
+  }
+  if (allProps.size === 0 && h1.hash !== h2.hash) {
+    diffs.push(new DiffEntry((h2 || h1).key, "changed", h2, h1));
+  }
+  return diffs;
+}
+function _toHashedObject(obj, opts, key = "") {
+  if (obj && typeof obj !== "object") {
+    return new DiffHashedObject(key, obj, objectHash(obj, opts));
+  }
+  const props = {};
+  const hashes = [];
+  for (const _key in obj) {
+    props[_key] = _toHashedObject(
+      obj[_key],
+      opts,
+      key ? `${key}.${_key}` : _key
+    );
+    hashes.push(props[_key].hash);
+  }
+  return new DiffHashedObject(key, obj, `{${hashes.join(":")}}`, props);
+}
+class DiffEntry {
+  constructor(key, type, newValue, oldValue) {
+    this.key = key;
+    this.type = type;
+    this.newValue = newValue;
+    this.oldValue = oldValue;
+  }
+  toString() {
+    return this.toJSON();
+  }
+  toJSON() {
+    switch (this.type) {
+      case "added": {
+        return `Added   \`${this.key}\``;
+      }
+      case "removed": {
+        return `Removed \`${this.key}\``;
+      }
+      case "changed": {
+        return `Changed \`${this.key}\` from \`${this.oldValue?.toString() || "-"}\` to \`${this.newValue.toString()}\``;
+      }
+    }
+  }
+}
+class DiffHashedObject {
+  constructor(key, value, hash, props) {
+    this.key = key;
+    this.value = value;
+    this.hash = hash;
+    this.props = props;
+  }
+  toString() {
+    if (this.props) {
+      return `{${Object.keys(this.props).join(",")}}`;
+    } else {
+      return JSON.stringify(this.value);
+    }
+  }
+  toJSON() {
+    const k = this.key || ".";
+    if (this.props) {
+      return `${k}({${Object.keys(this.props).join(",")}})`;
+    }
+    return `${k}(${this.value})`;
+  }
+}
+
 const NODE_TYPES = {
   NORMAL: 0,
   WILDCARD: 1,
@@ -4173,6 +4265,14 @@ const plugins = [
   _EbzNZJwN0h
 ];
 
+const _7brgbk = eventHandler(async (event) => {
+  const { code, lang, theme: themeString, options: optionsStr } = getQuery(event);
+  const theme = JSON.parse(themeString);
+  const options = optionsStr ? JSON.parse(optionsStr) : {};
+  const highlighter = await import('../build/mdc-highlighter.mjs').then((m) => m.default);
+  return await highlighter(code, lang, theme, options);
+});
+
 const _DRIVE_LETTER_START_RE = /^[A-Za-z]:\//;
 function normalizeWindowsPath(input = "") {
   if (!input) {
@@ -4621,7 +4721,7 @@ function _expandFromEnv(value) {
 const _inlineRuntimeConfig = {
   "app": {
     "baseURL": "/",
-    "buildId": "77093ff6-8237-4d60-8fc1-97696640e81c",
+    "buildId": "d60bb64a-f7da-4f42-9085-75cce606fafc",
     "buildAssetsDir": "/_nuxt/",
     "cdnURL": ""
   },
@@ -4656,38 +4756,38 @@ const _inlineRuntimeConfig = {
       "components": {
         "prose": true,
         "map": {
-          "p": "prose-p",
-          "a": "prose-a",
-          "blockquote": "prose-blockquote",
-          "code-inline": "prose-code-inline",
-          "code": "ProseCodeInline",
-          "em": "prose-em",
-          "h1": "prose-h1",
-          "h2": "prose-h2",
-          "h3": "prose-h3",
-          "h4": "prose-h4",
-          "h5": "prose-h5",
-          "h6": "prose-h6",
-          "hr": "prose-hr",
-          "img": "prose-img",
-          "ul": "prose-ul",
-          "ol": "prose-ol",
-          "li": "prose-li",
-          "strong": "prose-strong",
-          "table": "prose-table",
-          "thead": "prose-thead",
-          "tbody": "prose-tbody",
-          "td": "prose-td",
-          "th": "prose-th",
-          "tr": "prose-tr"
+          "p": "p",
+          "a": "a",
+          "blockquote": "blockquote",
+          "code-inline": "code",
+          "code": "pre",
+          "em": "em",
+          "h1": "h1",
+          "h2": "h2",
+          "h3": "h3",
+          "h4": "h4",
+          "h5": "h5",
+          "h6": "h6",
+          "hr": "hr",
+          "img": "img",
+          "ul": "ul",
+          "ol": "ol",
+          "li": "li",
+          "strong": "strong",
+          "table": "table",
+          "thead": "thead",
+          "tbody": "tbody",
+          "td": "td",
+          "th": "th",
+          "tr": "tr"
         }
       },
       "headings": {
         "anchorLinks": {
           "h1": false,
-          "h2": true,
-          "h3": true,
-          "h4": true,
+          "h2": false,
+          "h3": false,
+          "h4": false,
           "h5": false,
           "h6": false
         }
@@ -4696,7 +4796,7 @@ const _inlineRuntimeConfig = {
     "content": {
       "locales": [],
       "defaultLocale": "",
-      "integrity": 1736293395057,
+      "integrity": 1736782586187,
       "experimental": {
         "stripQueryParameters": false,
         "advanceQuery": false,
@@ -4712,44 +4812,65 @@ const _inlineRuntimeConfig = {
         ]
       },
       "tags": {
-        "p": "prose-p",
-        "a": "prose-a",
-        "blockquote": "prose-blockquote",
-        "code-inline": "prose-code-inline",
-        "code": "ProseCodeInline",
-        "em": "prose-em",
-        "h1": "prose-h1",
-        "h2": "prose-h2",
-        "h3": "prose-h3",
-        "h4": "prose-h4",
-        "h5": "prose-h5",
-        "h6": "prose-h6",
-        "hr": "prose-hr",
-        "img": "prose-img",
-        "ul": "prose-ul",
-        "ol": "prose-ol",
-        "li": "prose-li",
-        "strong": "prose-strong",
-        "table": "prose-table",
-        "thead": "prose-thead",
-        "tbody": "prose-tbody",
-        "td": "prose-td",
-        "th": "prose-th",
-        "tr": "prose-tr"
+        "p": "p",
+        "a": "a",
+        "blockquote": "blockquote",
+        "code-inline": "code",
+        "code": "pre",
+        "em": "em",
+        "h1": "h1",
+        "h2": "h2",
+        "h3": "h3",
+        "h4": "h4",
+        "h5": "h5",
+        "h6": "h6",
+        "hr": "hr",
+        "img": "img",
+        "ul": "ul",
+        "ol": "ol",
+        "li": "li",
+        "strong": "strong",
+        "table": "table",
+        "thead": "thead",
+        "tbody": "tbody",
+        "td": "td",
+        "th": "th",
+        "tr": "tr"
       },
-      "highlight": false,
+      "highlight": {
+        "theme": "github-dark",
+        "preload": [
+          "vue",
+          "javascript",
+          "typescript"
+        ],
+        "highlighter": "shiki",
+        "shikiEngine": "oniguruma",
+        "langs": [
+          "js",
+          "jsx",
+          "json",
+          "ts",
+          "tsx",
+          "vue",
+          "css",
+          "html",
+          "bash",
+          "md",
+          "mdc",
+          "yaml",
+          "vue",
+          "javascript",
+          "typescript"
+        ]
+      },
       "wsUrl": "",
       "documentDriven": false,
       "host": "",
       "trailingSlash": false,
       "search": "",
       "contentHead": true,
-      "anchorLinks": {
-        "depth": 4,
-        "exclude": [
-          1
-        ]
-      }
+      "anchorLinks": false
     }
   },
   "github": {
@@ -4758,7 +4879,7 @@ const _inlineRuntimeConfig = {
   },
   "content": {
     "cacheVersion": 2,
-    "cacheIntegrity": "lJsh6RfRm7",
+    "cacheIntegrity": "hMoOByWZ8R",
     "transformers": [],
     "base": "",
     "api": {
@@ -4781,48 +4902,71 @@ const _inlineRuntimeConfig = {
     "ignores": [],
     "locales": [],
     "defaultLocale": "",
-    "highlight": false,
+    "highlight": {
+      "theme": "github-dark",
+      "preload": [
+        "vue",
+        "javascript",
+        "typescript"
+      ],
+      "highlighter": "shiki",
+      "shikiEngine": "oniguruma",
+      "langs": [
+        "js",
+        "jsx",
+        "json",
+        "ts",
+        "tsx",
+        "vue",
+        "css",
+        "html",
+        "bash",
+        "md",
+        "mdc",
+        "yaml",
+        "vue",
+        "javascript",
+        "typescript"
+      ]
+    },
     "markdown": {
       "tags": {
-        "p": "prose-p",
-        "a": "prose-a",
-        "blockquote": "prose-blockquote",
-        "code-inline": "prose-code-inline",
-        "code": "ProseCodeInline",
-        "em": "prose-em",
-        "h1": "prose-h1",
-        "h2": "prose-h2",
-        "h3": "prose-h3",
-        "h4": "prose-h4",
-        "h5": "prose-h5",
-        "h6": "prose-h6",
-        "hr": "prose-hr",
-        "img": "prose-img",
-        "ul": "prose-ul",
-        "ol": "prose-ol",
-        "li": "prose-li",
-        "strong": "prose-strong",
-        "table": "prose-table",
-        "thead": "prose-thead",
-        "tbody": "prose-tbody",
-        "td": "prose-td",
-        "th": "prose-th",
-        "tr": "prose-tr"
+        "p": "p",
+        "a": "a",
+        "blockquote": "blockquote",
+        "code-inline": "code",
+        "code": "pre",
+        "em": "em",
+        "h1": "h1",
+        "h2": "h2",
+        "h3": "h3",
+        "h4": "h4",
+        "h5": "h5",
+        "h6": "h6",
+        "hr": "hr",
+        "img": "img",
+        "ul": "ul",
+        "ol": "ol",
+        "li": "li",
+        "strong": "strong",
+        "table": "table",
+        "thead": "thead",
+        "tbody": "tbody",
+        "td": "td",
+        "th": "th",
+        "tr": "tr"
       },
       "anchorLinks": {
-        "depth": 4,
-        "exclude": [
-          1
-        ]
+        "depth": 0,
+        "exclude": []
       },
+      "remarkPlugins": {},
+      "rehypePlugins": {},
+      "componentType": true,
+      "mdc": true,
       "toc": {
         "depth": 3,
         "searchDepth": 3
-      },
-      "remarkPlugins": {},
-      "rehypePlugins": {
-        "rehype-slug": {},
-        "rehype-autolink-headings": {}
       }
     },
     "yaml": {},
@@ -4844,6 +4988,12 @@ const _inlineRuntimeConfig = {
       "stripQueryParameters": false,
       "advanceQuery": false,
       "search": ""
+    },
+    "components": {
+      "global": true,
+      "dirs": [
+        "~/components/content"
+      ]
     }
   },
   "icon": {
@@ -5447,79 +5597,99 @@ async function dispose(driver) {
 const _assets = {
   ["nitro:bundled:cache:content:content-index.json"]: {
     import: () => import('../raw/content-index.mjs').then(r => r.default || r),
-    meta: {"type":"application/json","etag":"\"414-lrnKqN4EUhQxfStD+HT3J8uQccE\"","mtime":"2025-01-07T23:43:22.127Z"}
+    meta: {"type":"application/json","etag":"\"564-81EdkuT8MrMqgyMXNMKzsrb7d+o\"","mtime":"2025-01-13T15:36:33.872Z"}
   },
   ["nitro:bundled:cache:content:content-navigation.json"]: {
     import: () => import('../raw/content-navigation.mjs').then(r => r.default || r),
-    meta: {"type":"application/json","etag":"\"414-Nw/6vwMNoxEj2REae16AKGy8BoE\"","mtime":"2025-01-07T23:43:22.127Z"}
+    meta: {"type":"application/json","etag":"\"5aa-n9F1gEBAo3FKjkSwcivQCrHtXGY\"","mtime":"2025-01-13T15:36:33.872Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:_dir.yml"]: {
     import: () => import('../raw/_dir.mjs').then(r => r.default || r),
-    meta: {"type":"text/yaml; charset=utf-8","etag":"\"106-omMCjDIMWg5srljVxzwVfsy7GAQ\"","mtime":"2025-01-07T23:43:22.127Z"}
+    meta: {"type":"text/yaml; charset=utf-8","etag":"\"106-4TEzXmvO5DGfkkno9iLt26NJWAw\"","mtime":"2025-01-13T15:36:33.872Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:index.md"]: {
     import: () => import('../raw/index.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2504-KNM1cwn0lfTlmNwDR8w3lw0HZ08\"","mtime":"2025-01-07T23:43:22.127Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2311-kwZnsnnNegQ0zmf47Mvpw2fKKDU\"","mtime":"2025-01-13T15:36:33.873Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:_dir.yml"]: {
     import: () => import('../raw/_dir2.mjs').then(r => r.default || r),
-    meta: {"type":"text/yaml; charset=utf-8","etag":"\"1ba-CVhblx/irjvXUtJOdlPj7t2egP8\"","mtime":"2025-01-07T23:43:22.127Z"}
+    meta: {"type":"text/yaml; charset=utf-8","etag":"\"1ba-RMpRisd8MPrxa3QxJVpXw2N+lCQ\"","mtime":"2025-01-13T15:36:33.872Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:index.md"]: {
     import: () => import('../raw/index2.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2251-JqCfe89AUTz3/bbEDfkgEa/YGiY\"","mtime":"2025-01-07T23:43:22.128Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"1d9f-8rovJGWXbMJAcW9i5jXOHYlX/oI\"","mtime":"2025-01-13T15:36:33.873Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:introduction.md"]: {
     import: () => import('../raw/introduction.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"33ff-rMF1TolRHaR2gxk5LljIVupeImM\"","mtime":"2025-01-07T23:43:22.128Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2885-nkXqbgTno8gmrsxCUaKtxYs/DGc\"","mtime":"2025-01-13T15:36:33.873Z"}
+  },
+  ["nitro:bundled:cache:content:parsed:content:design:product:case-studies.md"]: {
+    import: () => import('../raw/case-studies.mjs').then(r => r.default || r),
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"dc8-cepFpxCaHAMqLT8tczvE827WM9M\"","mtime":"2025-01-13T15:36:33.873Z"}
+  },
+  ["nitro:bundled:cache:content:parsed:content:design:product:creative-spectrum.md"]: {
+    import: () => import('../raw/creative-spectrum.mjs').then(r => r.default || r),
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"605-F2IyzQv6/RBKosVzQz+ZHGLoMIM\"","mtime":"2025-01-13T15:36:33.872Z"}
+  },
+  ["nitro:bundled:cache:content:parsed:content:design:space:form.md"]: {
+    import: () => import('../raw/form.mjs').then(r => r.default || r),
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"4850-bVB4ggIzoRFmQCn9XkXqGHyXFnI\"","mtime":"2025-01-13T15:36:33.873Z"}
+  },
+  ["nitro:bundled:cache:content:parsed:content:design:space:introduction.md"]: {
+    import: () => import('../raw/introduction2.mjs').then(r => r.default || r),
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"939-dUcsLQkTLdHa3DsjxCs/AE3kogo\"","mtime":"2025-01-13T15:36:33.873Z"}
+  },
+  ["nitro:bundled:cache:content:parsed:content:design:space:mood.md"]: {
+    import: () => import('../raw/mood.mjs').then(r => r.default || r),
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"4156-pKAXs7oV1r8o+TjkxChHWwknLSg\"","mtime":"2025-01-13T15:36:33.872Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:_dir.yaml"]: {
     import: () => import('../raw/_dir3.mjs').then(r => r.default || r),
-    meta: {"type":"text/yaml; charset=utf-8","etag":"\"368-0g1dbJgM7UT51AuWMdzCeUOtf4w\"","mtime":"2025-01-07T23:43:22.128Z"}
+    meta: {"type":"text/yaml; charset=utf-8","etag":"\"368-kwmR14UNy8PmxvmqJ1I9Vyj0zM0\"","mtime":"2025-01-13T15:36:33.873Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:animation.md"]: {
     import: () => import('../raw/animation.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2c69-1vJ0qgNrGwSP2h1cKTQe7ggW2Mc\"","mtime":"2025-01-07T23:43:22.129Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"26fa-9j5Kut0D1FbMS7izn2Fyj3NM57U\"","mtime":"2025-01-13T15:36:33.874Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:applications.md"]: {
     import: () => import('../raw/applications.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2d4c-/RuLTMk+yZ8QX9YiLSDiktofEGc\"","mtime":"2025-01-07T23:43:22.129Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"28af-OVlUzv80h8h4HHDFxiUZUaVMjr8\"","mtime":"2025-01-13T15:36:33.875Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:color.md"]: {
     import: () => import('../raw/color.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"54a1-1oBvUjRfrvBHWUdU33+lTGL8RIY\"","mtime":"2025-01-07T23:43:22.130Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"270d-C4NDouwPr/te4aYfNgBqPHvOSHs\"","mtime":"2025-01-13T15:36:33.873Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:icons.md"]: {
     import: () => import('../raw/icons.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"322c-foWqdyrMPq4lLWOpd6noaKZ6YpE\"","mtime":"2025-01-07T23:43:22.128Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2e62-uXcONq9Gqrb+psFcPS2ajQsd9ic\"","mtime":"2025-01-13T15:36:33.874Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:illustration.md"]: {
     import: () => import('../raw/illustration.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"24bd-mZu+tYEFwJqAFit6KgeExnW73GU\"","mtime":"2025-01-07T23:43:22.129Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"1ffe-kvLd/UJdeWkPYGMHqGmRyL0EILE\"","mtime":"2025-01-13T15:36:33.873Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:imagery.md"]: {
     import: () => import('../raw/imagery.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2f53-kmUJe/L/r1KVTM6udiNT3uXDTLQ\"","mtime":"2025-01-07T23:43:22.130Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"29f2-ir+AcShMdl+Us+/TQXpaq0fWCgo\"","mtime":"2025-01-13T15:36:33.874Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:index.md"]: {
     import: () => import('../raw/index3.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"6a5-zUlrUC0aXoF693I5TALHytqgsBU\"","mtime":"2025-01-07T23:43:22.128Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"51f-M4OyC0aH6Mv9JMrZj4QiOHSxtY0\"","mtime":"2025-01-13T15:36:33.873Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:introduction.md"]: {
-    import: () => import('../raw/introduction2.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"24e3-qJQXnYm319r69AV0ytdYMUS1cfY\"","mtime":"2025-01-07T23:43:22.129Z"}
+    import: () => import('../raw/introduction3.mjs').then(r => r.default || r),
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"1f81-ziJhnA6DwdPTkyYuSqrqVjRZDJg\"","mtime":"2025-01-13T15:36:33.874Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:layout.md"]: {
     import: () => import('../raw/layout.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"32c7-D1SLeFxA41PUHAMS1wcHX3Q4XHM\"","mtime":"2025-01-07T23:43:22.129Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2ed7-FSro4Hk6jxnC+GIv21jdprfsqKY\"","mtime":"2025-01-13T15:36:33.873Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:logo.md"]: {
     import: () => import('../raw/logo.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"4743-sGK/QQyXksFUe60uYJ9a9iV0I/s\"","mtime":"2025-01-07T23:43:22.127Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"2895-1v1UqHNWz8eL4HaL3oXP0RTpTZA\"","mtime":"2025-01-13T15:36:33.872Z"}
   },
   ["nitro:bundled:cache:content:parsed:content:design:foundation:typography.md"]: {
     import: () => import('../raw/typography.mjs').then(r => r.default || r),
-    meta: {"type":"text/markdown; charset=utf-8","etag":"\"1ed6-ILAiGmzvRdtqJEUdJAl0K8siaIc\"","mtime":"2025-01-07T23:43:22.129Z"}
+    meta: {"type":"text/markdown; charset=utf-8","etag":"\"cfe-UtSaptvXy7BzYjcIs0AEbBYaBRA\"","mtime":"2025-01-13T15:36:33.873Z"}
   }
 };
 
@@ -6541,11 +6711,12 @@ const handlers = [
   { route: '/api/raw-content', handler: _lazy_DVnWKP, lazy: true, middleware: false, method: "post" },
   { route: '/api/raw-content', handler: _lazy_unnN8z, lazy: true, middleware: false, method: undefined },
   { route: '/__nuxt_error', handler: _lazy_dCUbUO, lazy: true, middleware: false, method: undefined },
+  { route: '/api/_mdc/highlight', handler: _7brgbk, lazy: false, middleware: false, method: undefined },
   { route: '/api/_nuxt_icon/:collection', handler: _Ka6fbh, lazy: false, middleware: false, method: undefined },
   { route: '/api/_content/query/:qid/**:params', handler: _S1cjMb, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/query/:qid', handler: _S1cjMb, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/query', handler: _S1cjMb, lazy: false, middleware: false, method: "get" },
-  { route: '/api/_content/cache.1736293395057.json', handler: _C3POLs, lazy: false, middleware: false, method: "get" },
+  { route: '/api/_content/cache.1736782586187.json', handler: _C3POLs, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/navigation/:qid/**:params', handler: _aCmWfG, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/navigation/:qid', handler: _aCmWfG, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/navigation', handler: _aCmWfG, lazy: false, middleware: false, method: "get" },
@@ -6692,5 +6863,5 @@ const listener = function(req, res) {
   return handler(req, res);
 };
 
-export { $fetch$1 as $, getPreview as A, hash as B, pascalCase as C, baseURL as D, defuFn as E, klona as F, createDefu as G, parseQuery as H, getContext as I, createHooks as J, hasProtocol as K, isScriptProtocol as L, withQuery as M, sanitizeStatusCode as N, withTrailingSlash as O, toRouteMatcher as P, createRouter$1 as Q, withBase as R, parse as S, getRequestHeader as T, isEqual as U, getCookie as V, deleteCookie as W, createStorage as X, memoryDriver as Y, listener as Z, setCookie as a, defineRenderHandler as b, createError$1 as c, defineEventHandler as d, buildAssetsURL as e, getRouteRules as f, getQuery as g, getResponseStatus as h, getResponseStatusText as i, useNitroApp as j, kebabCase as k, defu as l, isRelative as m, destr as n, extname as o, publicAssetsURL as p, camelCase as q, readBody as r, sendRedirect as s, joinURL as t, useRuntimeConfig as u, isPreview as v, prefixStorage as w, useStorage as x, withLeadingSlash as y, withoutTrailingSlash as z };
+export { $fetch$1 as $, getPreview as A, hash as B, pascalCase as C, baseURL as D, defuFn as E, klona as F, createDefu as G, parseQuery as H, getContext as I, createHooks as J, hasProtocol as K, isScriptProtocol as L, withQuery as M, sanitizeStatusCode as N, withTrailingSlash as O, toRouteMatcher as P, createRouter$1 as Q, withBase as R, parse as S, getRequestHeader as T, isEqual as U, getCookie as V, deleteCookie as W, diff as X, createStorage as Y, memoryDriver as Z, listener as _, setCookie as a, defineRenderHandler as b, createError$1 as c, defineEventHandler as d, buildAssetsURL as e, getRouteRules as f, getQuery as g, getResponseStatus as h, getResponseStatusText as i, useNitroApp as j, kebabCase as k, defu as l, isRelative as m, destr as n, extname as o, publicAssetsURL as p, camelCase as q, readBody as r, sendRedirect as s, joinURL as t, useRuntimeConfig as u, isPreview as v, prefixStorage as w, useStorage as x, withLeadingSlash as y, withoutTrailingSlash as z };
 //# sourceMappingURL=nitro.mjs.map

@@ -14,8 +14,8 @@
             class="main-content"
             :class="{ 'with-sidebar': !isEditing && showSidebar }"
           >
-            <!-- Content header with edit controls -->
-            <div class="content-header">
+            <!-- Content header with edit controls - only show when logged in -->
+            <div v-if="isLoggedIn" class="content-header">
               <ClientOnly>
                 <button
                   v-if="!isEditing"
