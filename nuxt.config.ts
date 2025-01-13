@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   // Essential modules that your application needs
   modules: [
-    "@nuxt/content", // Handles your markdown content
+    "@nuxt/content", // Handles markdown content
     "@nuxt/ui", // Provides UI components
     "@nuxtjs/tailwindcss", // CSS framework
   ],

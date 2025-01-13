@@ -5,17 +5,140 @@ import { Editor, EditorContent } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
+import { Node } from "@tiptap/core";
+import Heading from "@tiptap/extension-heading";
 import Text from "@tiptap/extension-text";
 import Image from "@tiptap/extension-image";
 import ColorWheelExtension from "../extensions/colorWheelExtension";
 import CollaborationSidebar from "~/components/CollaborationSidebar.vue";
 import { useGithub } from "~/composables/useGithub";
 import { useToast } from "~/composables/useToast";
+import { useNuxtApp } from "#app";
 
 interface Props {
   content?: string;
   filePath: string;
 }
+
+const StyledDiv = Node.create({
+  name: "styledDiv",
+  group: "block",
+  content: "block+",
+  addAttributes() {
+    return {
+      style: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("style"),
+        renderHTML: (attributes) => {
+          if (!attributes.style) return {};
+          return { style: attributes.style };
+        },
+      },
+      class: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("class"),
+        renderHTML: (attributes) => {
+          if (!attributes.class) return {};
+          return { class: attributes.class };
+        },
+      },
+      "data-type": {
+        default: null,
+        parseHTML: (element) => element.getAttribute("data-type"),
+        renderHTML: (attributes) => {
+          if (!attributes["data-type"]) return {};
+          return { "data-type": attributes["data-type"] };
+        },
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "div" }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["div", HTMLAttributes, 0];
+  },
+});
+
+const GridContainer = Node.create({
+  name: "gridContainer",
+  group: "block",
+  content: "block+",
+  addAttributes() {
+    return {
+      style: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("style"),
+        renderHTML: (attributes) => {
+          if (!attributes.style) return {};
+          return { style: attributes.style };
+        },
+      },
+    };
+  },
+  parseHTML() {
+    return [
+      {
+        tag: "div",
+        getAttrs: (node) => {
+          const style = node.getAttribute("style") || "";
+          return style.includes("grid") ? {} : false;
+        },
+      },
+    ];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["div", HTMLAttributes, 0];
+  },
+});
+
+const StyledParagraph = Paragraph.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      style: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("style"),
+        renderHTML: (attributes) => {
+          if (!attributes.style) return {};
+          return { style: attributes.style };
+        },
+      },
+    };
+  },
+});
+
+const StyledHeading = Heading.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      style: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("style"),
+        renderHTML: (attributes) => {
+          if (!attributes.style) return {};
+          return { style: attributes.style };
+        },
+      },
+    };
+  },
+});
+
+const StyledImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      style: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("style"),
+        renderHTML: (attributes) => {
+          if (!attributes.style) return {};
+          return { style: attributes.style };
+        },
+      },
+    };
+  },
+});
 
 const props = defineProps<Props>();
 const emit = defineEmits<{
@@ -29,6 +152,7 @@ const localContent = ref("");
 const originalContent = ref("");
 const isSaving = ref(false);
 const previewMode = ref(false);
+const rawMode = ref(false);
 const editor = ref<Editor | null>(null);
 const isInitialContent = ref(true);
 
@@ -42,31 +166,34 @@ const showDebugInfo = computed(() => {
   return process.env.NODE_ENV === "development";
 });
 
-// Enhanced formatHTML function with proper markdown and component handling
+// Preview key for forcing content refresh
+const previewKey = computed(() => `preview-${Date.now()}`);
+
+// Get preview path from file path
+const getPreviewPath = computed(() => {
+  const path = props.filePath.replace(/^content\//, "").replace(/\.md$/, "");
+  return path === "index" ? "/" : path;
+});
+
 const formatHTML = (html: string): string => {
   if (!html) return "";
 
-  // First handle special components and markdown containers
   html = html
-    // Convert color wheel div to markdown container syntax
     .replace(
       /<div[^>]*data-type="color-wheel"[^>]*>.*?<\/div>/g,
       "\n::color-wheel\n::\n"
     )
-    // Convert test component div to markdown container syntax
     .replace(
       /<div[^>]*data-type="test-component"[^>]*>.*?<\/div>/g,
       "\n::test-component\n::\n"
     );
 
-  // Preserve inline formatting elements
   let formattedHTML = html
     .replace(/<strong>/g, "§§STRONG§§")
     .replace(/<\/strong>/g, "§§/STRONG§§")
     .replace(/<em>/g, "§§EM§§")
     .replace(/<\/em>/g, "§§/EM§§");
 
-  // Handle block elements and spacing
   formattedHTML = formattedHTML
     .replace(/></g, ">\n<")
     .replace(
@@ -78,50 +205,48 @@ const formatHTML = (html: string): string => {
     .filter((line) => line.length > 0)
     .join("\n");
 
-  // Restore inline formatting
   formattedHTML = formattedHTML
     .replace(/§§STRONG§§/g, "<strong>")
     .replace(/§§\/STRONG§§/g, "</strong>")
     .replace(/§§EM§§/g, "<em>")
     .replace(/§§\/EM§§/g, "</em>");
 
-  // Clean up extra newlines
-  formattedHTML = formattedHTML.replace(/\n{3,}/g, "\n\n").trim();
-
-  return formattedHTML;
+  return formattedHTML.replace(/\n{3,}/g, "\n\n").trim();
 };
 
-// Custom Document extension with enhanced block handling
 const CustomDocument = Document.extend({
   content: "block+",
 });
 
-// Parse markdown containers to HTML
 const parseMarkdownToHTML = (content: string): string => {
   if (!content) return "";
 
-  return (
-    content
-      // Convert markdown containers to divs
-      .replace(/::color-wheel\s*::/g, '<div data-type="color-wheel"></div>')
-      .replace(
-        /::test-component\s*::/g,
-        '<div data-type="test-component"></div>'
-      )
-  );
+  return content
+    .replace(/::color-wheel\s*::/g, '<div data-type="color-wheel"></div>')
+    .replace(
+      /::test-component\s*::/g,
+      '<div data-type="test-component"></div>'
+    );
 };
 
-// Initialize editor with enhanced configuration
 onMounted(() => {
   editor.value = new Editor({
     extensions: [
       StarterKit.configure({
         document: false,
+        paragraph: false,
+        heading: false,
+        bulletList: false,
+        orderedList: false,
       }),
       CustomDocument,
-      Image.configure({
+      StyledParagraph,
+      StyledHeading,
+      StyledImage.configure({
         inline: true,
       }),
+      StyledDiv,
+      GridContainer,
       ColorWheelExtension.configure({
         HTMLAttributes: {
           class: "color-wheel-node",
@@ -133,20 +258,19 @@ onMounted(() => {
         class: "prose-editor",
         spellcheck: "false",
       },
+      transformPastedHTML: (html) => {
+        return html;
+      },
     },
     onUpdate: ({ editor: ed }) => {
-      // Store current selection before formatting
       const { from, to } = ed.state.selection;
-
       const rawContent = ed.getHTML();
       const formattedContent = formatHTML(rawContent);
 
-      // Only update if content actually changed
       if (formattedContent !== localContent.value) {
         localContent.value = formattedContent;
         emit("update:content", formattedContent);
 
-        // Use setTimeout to let Vue render complete before restoring selection
         setTimeout(() => {
           if (editor.value) {
             editor.value.commands.setTextSelection({ from, to });
@@ -159,7 +283,6 @@ onMounted(() => {
     },
   });
 
-  // Initialize content
   if (props.content) {
     const parsedContent = parseMarkdownToHTML(props.content);
     const formattedContent = formatHTML(parsedContent);
@@ -168,7 +291,6 @@ onMounted(() => {
     originalContent.value = formattedContent;
   }
 
-  // Force an initial content update after editor is ready
   const initialContent = editor.value.getHTML();
   if (initialContent) {
     const formattedContent = formatHTML(initialContent);
@@ -176,31 +298,24 @@ onMounted(() => {
   }
 });
 
-// Watch for content changes from parent
 watch(
   () => props.content,
   (newContent, oldContent) => {
     if (newContent !== undefined && editor.value) {
-      // Store current selection state
       const { from, to } = editor.value.state.selection;
-
       const parsedContent = parseMarkdownToHTML(newContent);
       const formattedContent = formatHTML(parsedContent);
 
-      // Update if content changed or if this is the initial content
       if (formattedContent !== localContent.value || isInitialContent.value) {
         editor.value.commands.setContent(formattedContent, false);
         localContent.value = formattedContent;
 
-        // Handle initial content
         if (isInitialContent.value) {
           originalContent.value = formattedContent;
           isInitialContent.value = false;
-          // Force an update event for initial content
           emit("update:content", formattedContent);
         }
 
-        // Restore cursor position after update
         setTimeout(() => {
           if (editor.value) {
             editor.value.commands.setTextSelection({ from, to });
@@ -209,22 +324,14 @@ watch(
       }
     }
   },
-  { immediate: true } // Add immediate option to handle initial value
+  { immediate: true }
 );
 
-// Improved change detection
 const hasChanges = computed(() => {
   if (!localContent.value || !originalContent.value) return false;
   return localContent.value !== originalContent.value;
 });
 
-// Preview content with proper formatting
-const previewContent = computed(() => {
-  if (!localContent.value) return "";
-  return `<div class="prose">${parseMarkdownToHTML(localContent.value)}</div>`;
-});
-
-// Enhanced save functionality
 const saveToDisk = async () => {
   if (!hasChanges.value || isSaving.value) return;
 
@@ -235,6 +342,16 @@ const saveToDisk = async () => {
     }
 
     const contentToSave = formatHTML(localContent.value);
+
+    // Clear Nuxt's content cache before saving
+    if (process.client) {
+      const nuxtApp = useNuxtApp();
+      const storage = nuxtApp.$content?.storage;
+      if (storage) {
+        await storage.clearAll();
+      }
+    }
+
     emit("save", contentToSave);
     originalContent.value = contentToSave;
   } catch (error) {
@@ -251,7 +368,6 @@ const saveToDisk = async () => {
   }
 };
 
-// Cleanup
 onBeforeUnmount(() => {
   if (editor.value) {
     editor.value.destroy();
@@ -261,17 +377,16 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="editor-wrapper">
-    <!-- Debug info panel -->
     <div v-if="showDebugInfo" class="debug-info">
       <div class="debug-panel">
         <pre>Has changes: {{ hasChanges }}</pre>
         <pre>Local content length: {{ localContent?.length }}</pre>
         <pre>Original content length: {{ originalContent?.length }}</pre>
         <pre>Preview mode: {{ previewMode }}</pre>
+        <pre>Raw mode: {{ rawMode }}</pre>
       </div>
     </div>
 
-    <!-- Login prompt -->
     <div v-if="!isLoggedIn" class="login-prompt">
       <p class="login-message">Please sign in with GitHub to edit this file</p>
       <button @click="github.login" class="login-button">
@@ -279,7 +394,6 @@ onBeforeUnmount(() => {
       </button>
     </div>
 
-    <!-- Editor layout -->
     <div v-else class="editor-layout">
       <div class="editor-main">
         <div class="editor-toolbar">
@@ -290,8 +404,17 @@ onBeforeUnmount(() => {
           <div class="toolbar-right">
             <button
               class="toolbar-button"
+              :class="{ active: rawMode }"
+              @click="rawMode = !rawMode"
+            >
+              {{ rawMode ? "Normal" : "Raw" }}
+            </button>
+
+            <button
+              class="toolbar-button"
               :class="{ active: previewMode }"
               @click="previewMode = !previewMode"
+              v-if="!rawMode"
             >
               {{ previewMode ? "Edit" : "Preview" }}
             </button>
@@ -311,7 +434,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="editor-content">
-          <template v-if="!previewMode">
+          <template v-if="!previewMode && !rawMode">
             <div class="tiptap-toolbar" v-if="editor">
               <button
                 @click="editor.chain().focus().toggleBold().run()"
@@ -373,8 +496,25 @@ onBeforeUnmount(() => {
             />
           </template>
 
+          <div v-else-if="rawMode" class="raw-content-wrapper">
+            <pre class="raw-content">{{ localContent }}</pre>
+          </div>
+
           <div v-else class="preview-wrapper">
-            <div v-html="previewContent" class="preview-content"></div>
+            <div class="prose">
+              <ContentDoc
+                :path="getPreviewPath"
+                :key="previewKey"
+                :head="false"
+              >
+                <template #empty>
+                  <p>No content found.</p>
+                </template>
+                <template #not-found>
+                  <p>Content not found. Path: {{ getPreviewPath }}</p>
+                </template>
+              </ContentDoc>
+            </div>
           </div>
         </div>
       </div>
@@ -639,5 +779,24 @@ onBeforeUnmount(() => {
   background: #f5f5f5;
   padding: 2rem;
   border-radius: 4px;
+}
+
+/* Raw content styles */
+.raw-content-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  background: #1e1e1e;
+}
+
+.raw-content {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #d4d4d4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  tab-size: 2;
 }
 </style>
