@@ -472,7 +472,7 @@ onMounted(() => {
 
 .content-area {
   display: flex;
-  background: #f9fafb;
+  background: white;
   min-height: calc(100vh - 64px);
 }
 

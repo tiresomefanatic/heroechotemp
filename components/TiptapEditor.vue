@@ -417,7 +417,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="editor-wrapper">
-    <div v-if="showDebugInfo" class="debug-info">
+    <!-- <div v-if="showDebugInfo" class="debug-info">
       <div class="debug-panel">
         <pre>Has changes: {{ hasChanges }}</pre>
         <pre>Local content length: {{ localContent?.length }}</pre>
@@ -426,7 +426,7 @@ onBeforeUnmount(() => {
         <pre>Raw mode: {{ rawMode }}</pre>
         <pre>Editor initialized: {{ editorInitialized }}</pre>
       </div>
-    </div>
+    </div> -->
 
     <div v-if="!isLoggedIn" class="login-prompt">
       <p class="login-message">Please sign in with GitHub to edit this file</p>

@@ -1,170 +1,71 @@
----
-title: Design Overview
-description: Echo Design System Design Guidelines
-navigation:
-  title: Overview
-  parent: design
----
+<div style="width: 100%; margin: 0; padding: 0;">
+<div style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
 
-<div class="design-layout">
-<div class="design-content">
+<h1 style="font-size: 2.5rem; font-weight: 500; margin: 0 0 1.5rem;">Introduction</h1>
 
-# Design System Overview
+<p style="font-size: 1rem; line-height: 1.6; color: #666; margin: 0 0 2rem; max-width: 720px;">Echo is the Design System we use to create Vida products. Our main goal is to offer everything in one place — assets, resources, files, and guidelines. Always accessible to the people that need them and always available in the spaces that we work in.</p>
 
-Echo's design system provides a comprehensive set of guidelines, components, and resources to create consistent and delightful user experiences across all our digital products.
-
-<div class="hero-image">
-  <img src="/images/echo-pattern.svg" alt="Echo Pattern" />
+<div style="width: 100%; background: #f5f5f5; border-radius: 1rem; margin: 2.5rem 0; display: flex; align-items: center; justify-content: center;">
+  <img src="/images/echo-dna.png" alt="Echo DNA" style="width: 100%; height: auto;" />
 </div>
 
-<div class="content-grid">
-  <div class="content-left">
-    <h2>Building Blocks of Design</h2>
-    <p>Our design system is built on foundational elements that combine to create sophisticated and scalable interfaces. From basic color theory to complex interaction patterns, each component is crafted with purpose.</p>
+<div style="display: grid; grid-template-columns: 240px 1fr; gap: 24px 64px; margin-top: 3rem;">
+  <div>
+    <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Our Vision</h2>
   </div>
-  
-  <div class="content-right">
-    <h3>Consistency</h3>
-    <p>Create cohesive experiences across different platforms and products through standardized design patterns and components.</p>
+  <div style="max-width: 800px;">
+    <p style="font-size: 1.5rem; line-height: 1.4; margin-bottom: 1.5rem;">Using the power of our scale, we want to <span style="color: #FF5F37;">democratise electric mobility</span> for the planet.</p>
+  </div>
 
-    <h3>Efficiency</h3>
-    <p>Speed up the design and development process with ready-to-use components and clear implementation guidelines.</p>
+  <div>
+    <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Our Mission</h2>
+  </div>
+  <div style="max-width: 800px;">
+    <p style="font-size: 1.5rem; line-height: 1.4; margin-bottom: 1.5rem;">Equipping the world with the best in riding tech and <span style="color: #FF5F37;">empowering people</span> to <span style="color: #4DD2FF;">make moves that matter</span>, today.</p>
+  </div>
 
-    <h3>Flexibility</h3>
-    <p>Adapt and extend the system to meet specific product needs while maintaining core design principles.</p>
+  <div>
+    <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Our Values</h2>
+  </div>
+  <div style="max-width: 800px;">
+    <div style="margin-bottom: 2rem;">
+      <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: #FF5F37;">→ Courage</h3>
+      <p style="margin: 0; line-height: 1.6; color: #666;">Green mobility should be a global reality. We're chasing this ambition with all our technological might. Fuelled to overcome all constraints that might come our way.</p>
+    </div>
 
+   <div style="margin-bottom: 2rem;">
+      <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: #FF5F37;">→ Honesty</h3>
+      <p style="margin: 0; line-height: 1.6; color: #666;">With great products, transparency comes easy. Our riders' trust is what drives us to keep raising the bar.</p>
+    </div>
+
+  <div style="margin-bottom: 2rem;">
+      <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: #FF5F37;">→ Optimism</h3>
+      <p style="margin: 0; line-height: 1.6; color: #666;">What good has ever come out a cynic's hat? At VIDA, we supercharge intent into action for a better tomorrow.</p>
+    </div>
+  </div>
+
+  <div>
+    <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Brand Personality</h2>
+  </div>
+  <div style="max-width: 800px;">
+    <p style="margin-bottom: 2rem; line-height: 1.6; color: #666;">Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra nullam dolor vestibulum pharetra et. Pretium consectetur eauqat venenatis augue quam nibh laoreet fermentum nunc mi. Laoreet id proin diam adipiscing lobortis erat sed. Vestibulum risus sit elementum tortor.</p>
+
+   <div style="margin-bottom: 2rem;">
+      <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: #FF5F37;">→ Positive</h3>
+      <p style="margin: 0; line-height: 1.6; color: #666;">Green mobility should be a global reality. We're chasing this ambition with all our technological might. Fuelled to overcome all constraints that might come our way.</p>
+    </div>
+
+   <div style="margin-bottom: 2rem;">
+      <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: #FF5F37;">→ Influential</h3>
+      <p style="margin: 0; line-height: 1.6; color: #666;">With great products, transparency comes easy. Our riders' trust is what drives us to keep raising the bar.</p>
+    </div>
+
+   <div style="margin-bottom: 2rem;">
+      <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: #FF5F37;">→ Resilient</h3>
+      <p style="margin: 0; line-height: 1.6; color: #666;">What good has ever come out a cynic's hat? At VIDA, we supercharge intent into action for a better tomorrow.</p>
+    </div>
   </div>
 </div>
 
-<div class="card-grid">
-<div class="section-card">
-  <div class="card-image">
-    <img src="/images/foundation.svg" alt="Foundation" />
-  </div>
-  <h3>Foundation</h3>
-  <p>Core design elements like color, typography, spacing, and grid systems that form the basis of our visual language.</p>
-  <a href="/design/foundation" class="card-link">Explore Foundation →</a>
-</div>
-
-<div class="section-card">
-  <div class="card-image">
-    <img src="/images/components.svg" alt="Components" />
-  </div>
-  <h3>Components</h3>
-  <p>A comprehensive library of UI components designed for reusability and consistency across applications.</p>
-  <a href="/design/components" class="card-link">View Components →</a>
-</div>
-
-<div class="section-card">
-  <div class="card-image">
-    <img src="/images/patterns.svg" alt="Patterns" />
-  </div>
-  <h3>Patterns</h3>
-  <p>Common interaction patterns and layout solutions that help create intuitive user experiences.</p>
-  <a href="/design/patterns" class="card-link">Learn Patterns →</a>
 </div>
 </div>
-
-</div>
-</div>
-
-<style>
-.design-layout {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.design-content {
-  min-width: 0;
-}
-
-.hero-image {
-  width: 100%;
-  height: 300px;
-  background: var(--dark-bg);
-  border-radius: 1rem;
-  margin: 2.5rem 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.content-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  margin: 4rem 0;
-}
-
-.content-left h2 {
-  font-size: 2.5rem;
-  line-height: 1.2;
-  margin: 0 0 1.5rem 0;
-  font-weight: 600;
-}
-
-.content-right h3 {
-  font-size: 1.5rem;
-  margin: 2rem 0 1rem 0;
-  font-weight: 500;
-}
-
-.content-right h3:first-child {
-  margin-top: 0;
-}
-
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  margin: 4rem 0;
-}
-
-.section-card {
-  padding: 2rem;
-  background: white;
-  border-radius: 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.card-image {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 1.5rem;
-}
-
-.section-card h3 {
-  margin: 0 0 1rem 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.section-card p {
-  margin: 0 0 1.5rem 0;
-  color: #666;
-  line-height: 1.6;
-}
-
-.card-link {
-  color: var(--echo-orange);
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.card-link:hover {
-  text-decoration: underline;
-}
-
-@media (max-width: 768px) {
-  .content-grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-  
-  .card-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

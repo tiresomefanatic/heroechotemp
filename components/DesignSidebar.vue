@@ -3,12 +3,6 @@
     <nav class="design-nav">
       <div class="nav-content">
         <!-- Overview -->
-        <NuxtLink
-          to="/design/overview"
-          class="nav-item main-item"
-          :class="{ active: $route.path === '/design/overview' }"
-          >Overview</NuxtLink
-        >
 
         <!-- Foundation Section -->
         <div class="nav-group">

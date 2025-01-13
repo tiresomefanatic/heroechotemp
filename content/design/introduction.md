@@ -4,9 +4,6 @@ description: Echo Design System documentation
 ---
 
 <div class="design-layout">
-<div class="design-sidebar">
-<design-sidebar />
-</div>
 
 <div class="design-content">
 
@@ -47,12 +44,15 @@ Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae gravida r
 Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 
 ### → Positive
+
 Green mobility should be a global reality. While chasing this ambition with all our technological might. Fuelled to overcome all constraints that might come our way.
 
 ### → Influential
+
 With great products, transparency comes easy. Our riders trust is what drives us to keep raising the bar.
 
 ### → Resilient
+
 What good has ever come out a cynic's hat? At VGA, we supercharge intent into action for a better tomorrow.
 
 <div class="card-grid">
