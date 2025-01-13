@@ -1,148 +1,55 @@
-<div class="page">
-  <h1>Logo</h1>
-
-  <p>Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam non ipsum.</p>
-
-  <div class="grid-layout">
-    <div class="heading">
-      <h2>Construction</h2>
-    </div>
-    <div class="content">
-      <img src="/images/logo-construction.svg" alt="Logo Construction" />
-      
-   <h3>We call our symbol The Zig</h3>
-      
-  <p>The Zig stands for motion, spontaneity and energy. It speaks to the restless energy of the future generations and their desire to create their perfect world.</p>
-      
-  <p>The Zig is the graphic encapsulation of our narrative and serves to identify everything that we represent. It is a living object that's always in motion. The V approximation represents the 'resting' state of the Zig.</p>
-    </div>
-
-  <div class="heading">
-      <h2>Zig - Monogram</h2>
-    </div>
-    <div class="content">
-      <img src="/images/zig-monogram.svg" alt="Zig Monogram" />
-      
-   <p>The Zig monogram serves as our icon mark, designed for recognition at smaller scales and as a memorable brand element.</p>
-      
-   <ul>
-        <li>App icons</li>
-        <li>Favicons</li>
-        <li>Social media avatars</li>
-        <li>Small-scale applications</li>
-      </ul>
-    </div>
-
-<div class="heading">
-      <h2>Zig - Clearspaces</h2>
-    </div>
-    <div class="content">
-      <img src="/images/zig-clearspaces.svg" alt="Clearspaces" />
-      
-   <ul>
-        <li><strong>Minimum Clearspace</strong>: Equal to the height of the Zig monogram</li>
-        <li><strong>Protected Area</strong>: No other visual elements may intrude into this space</li>
-        <li><strong>Scaling</strong>: Clearspace scales proportionally with logo size</li>
-      </ul>
-    </div>
-
-<div class="heading">
-      <h2>Zig - Alignment</h2>
-    </div>
-    <div class="content">
-      <img src="/images/zig-alignment.svg" alt="Alignment" />
-      
-   <h3>Horizontal Alignment</h3>
-      <ul>
-        <li>Left-aligned with content when possible</li>
-        <li>Centered for standalone applications</li>
-      </ul>
-      
-  <h3>Vertical Alignment</h3>
-      <ul>
-        <li>Baseline alignment with adjacent text</li>
-        <li>Optical center alignment in contained spaces</li>
-      </ul>
-    </div>
-
- <div class="heading">
-      <h2>Logo Variations</h2>
-    </div>
-    <div class="content">
-      <ul>
-        <li><strong>Primary Logo</strong>: Full-color version for primary applications. Used on white or light backgrounds.</li>
-        <li><strong>Monochrome</strong>: Black version for dark backgrounds. White version for light backgrounds.</li>
-        <li><strong>One-Color</strong>: Solid brand orange version. Used for special applications.</li>
-      </ul>
-    </div>
-  </div>
+<div style="max-width: 1200px; margin: 0 auto; padding: 0;">
+<h1 style="font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem;">Logo</h1>
+<p style="margin: 1rem 0; line-height: 1.6;">Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam non ipsum.</p>
+<div style="display: grid; grid-template-columns: 240px 1fr; gap: 24px 64px; margin-top: 3rem;">
+<div>
+<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Construction</h2>
 </div>
-
-<style>
-.page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0;
-}
-
-.grid-layout {
-  display: grid;
-  grid-template-columns: 240px 1fr;
-  gap: 24px 64px;
-  margin-top: 3rem;
-}
-
-.heading h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-.content {
-  max-width: 800px;
-}
-
-.content img {
-  width: 100%;
-  background: #f5f5f5;
-  padding: 2rem;
-  border-radius: 4px;
-  margin-bottom: 1.5rem;
-}
-
-h1 {
-  font-size: 2.25rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-
-h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 1rem 0;
-}
-
-p {
-  margin: 1rem 0;
-  line-height: 1.6;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 1rem 0;
-}
-
-li {
-  margin: 0.5rem 0;
-  line-height: 1.6;
-}
-
-@media (max-width: 768px) {
-  .grid-layout {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-}
-</style>
+<div style="max-width: 800px;">
+<img src="/images/logo-construction.png" alt="Logo Construction" style="width: 100%; background: #f5f5f5; padding: 2rem; border-radius: 4px; margin-bottom: 1.5rem;" />
+<h3 style="font-size: 1.25rem; font-weight: 600; margin: 1rem 0;">We call our symbol The Zig</h3>
+<p style="margin: 1rem 0; line-height: 1.6;">The Zig stands for motion, spontaneity and energy. It speaks to the restless energy of the future generations and their desire to create their perfect world.</p>
+<p style="margin: 1rem 0; line-height: 1.6;">The Zig is the graphic encapsulation of our narrative and serves to identify everything that we represent. It is a living object that's always in motion. The V approximation represents the 'resting' state of the Zig.</p>
+</div>
+<div>
+<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Zig - Monogram</h2>
+</div>
+<div style="max-width: 800px;">
+<img src="/images/zig-monogram.svg" alt="Zig Monogram" style="width: 100%; background: #f5f5f5; padding: 2rem; border-radius: 4px; margin-bottom: 1.5rem;" />
+<p style="margin: 1rem 0; line-height: 1.6;">The Zig monogram serves as our icon mark, designed for recognition at smaller scales and as a memorable brand element.</p>
+<ul style="list-style: none; padding: 0; margin: 1rem 0;">
+<li style="margin: 0.5rem 0; line-height: 1.6;">App icons</li>
+<li style="margin: 0.5rem 0; line-height: 1.6;">Favicons</li>
+<li style="margin: 0.5rem 0; line-height: 1.6;">Social media avatars</li>
+<li style="margin: 0.5rem 0; line-height: 1.6;">Small-scale applications</li>
+</ul>
+</div>
+<div>
+<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Zig - Clearspaces</h2>
+</div>
+<div style="max-width: 800px;">
+<img src="/images/zig-clearspaces.svg" alt="Clearspaces" style="width: 100%; background: #f5f5f5; padding: 2rem; border-radius: 4px; margin-bottom: 1.5rem;" />
+<ul style="list-style: none; padding: 0; margin: 1rem 0;">
+<li style="margin: 0.5rem 0; line-height: 1.6;"><strong>Minimum Clearspace</strong>: Equal to the height of the Zig monogram</li>
+<li style="margin: 0.5rem 0; line-height: 1.6;"><strong>Protected Area</strong>: No other visual elements may intrude into this space</li>
+<li style="margin: 0.5rem 0; line-height: 1.6;"><strong>Scaling</strong>: Clearspace scales proportionally with logo size</li>
+</ul>
+</div>
+<div>
+<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Zig - Alignment</h2>
+</div>
+<div style="max-width: 800px;">
+<img src="/images/zig-alignment.svg" alt="Alignment" style="width: 100%; background: #f5f5f5; padding: 2rem; border-radius: 4px; margin-bottom: 1.5rem;" />
+<h3 style="font-size: 1.25rem; font-weight: 600; margin: 1rem 0;">Horizontal Alignment</h3>
+<ul style="list-style: none; padding: 0; margin: 1rem 0;">
+<li style="margin: 0.5rem 0; line-height: 1.6;">Left-aligned with content when possible</li>
+<li style="margin: 0.5rem 0; line-height: 1.6;">Centered for standalone applications</li>
+</ul>
+<h3 style="font-size: 1.25rem; font-weight: 600; margin: 1rem 0;">Vertical Alignment</h3>
+<ul style="list-style: none; padding: 0; margin: 1rem 0;">
+<li style="margin: 0.5rem 0; line-height: 1.6;">Baseline alignment with adjacent text</li>
+<li style="margin: 0.5rem 0; line-height: 1.6;">Optical center alignment in contained spaces</li>
+</ul>
+</div>
+</div>
+</div>
