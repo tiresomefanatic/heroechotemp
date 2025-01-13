@@ -20,6 +20,7 @@ interface Props {
   filePath: string;
 }
 
+// Node extensions with style support
 const StyledDiv = Node.create({
   name: "styledDiv",
   group: "block",
@@ -154,7 +155,8 @@ const isSaving = ref(false);
 const previewMode = ref(false);
 const rawMode = ref(false);
 const editor = ref<Editor | null>(null);
-const isInitialContent = ref(true);
+const editorInitialized = ref(false);
+const previewContent = ref("");
 
 // Initialize composables
 const { showToast } = useToast();
@@ -166,14 +168,14 @@ const showDebugInfo = computed(() => {
   return process.env.NODE_ENV === "development";
 });
 
-// Preview key for forcing content refresh
-const previewKey = computed(() => `preview-${Date.now()}`);
-
-// Get preview path from file path
-const getPreviewPath = computed(() => {
-  const path = props.filePath.replace(/^content\//, "").replace(/\.md$/, "");
-  return path === "index" ? "/" : path;
-});
+/**
+ * Helper function to normalize HTML content by handling HTML entities consistently
+ */
+const normalizeHTML = (html: string): string => {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.innerHTML;
+};
 
 const formatHTML = (html: string): string => {
   if (!html) return "";
@@ -261,34 +263,53 @@ onMounted(() => {
       transformPastedHTML: (html) => {
         return html;
       },
+      handleDrop: false,
+      handleClick: () => {
+        // Prevent default click behavior that might cause unwanted selection
+        return true;
+      },
+      handleKeyDown: ({ event }) => {
+        // Allow default keyboard behavior but prevent unwanted selection
+        if (event.key === "Tab") {
+          return true;
+        }
+        return false;
+      },
     },
     onUpdate: ({ editor: ed }) => {
-      const { from, to } = ed.state.selection;
-      const rawContent = ed.getHTML();
-      const formattedContent = formatHTML(rawContent);
+      const content = ed.getHTML();
+      if (content === localContent.value) return;
 
-      if (formattedContent !== localContent.value) {
+      // Capture cursor position
+      const { from, to } = ed.state.selection;
+
+      // Schedule content update
+      setTimeout(() => {
+        const formattedContent = formatHTML(content);
         localContent.value = formattedContent;
+        previewContent.value = formattedContent;
         emit("update:content", formattedContent);
 
-        setTimeout(() => {
-          if (editor.value) {
-            editor.value.commands.setTextSelection({ from, to });
-          }
-        }, 0);
-      }
+        // Restore cursor position after state updates
+        if (editor.value) {
+          editor.value.commands.setTextSelection({ from, to });
+        }
+      }, 0);
     },
     parseOptions: {
-      preserveWhitespace: true,
+      preserveWhitespace: "full",
     },
   });
 
   if (props.content) {
     const parsedContent = parseMarkdownToHTML(props.content);
     const formattedContent = formatHTML(parsedContent);
-    editor.value.commands.setContent(formattedContent, false);
+    editor.value.commands.setContent(formattedContent, false, {
+      preserveWhitespace: "full",
+    });
     localContent.value = formattedContent;
     originalContent.value = formattedContent;
+    previewContent.value = formattedContent;
   }
 
   const initialContent = editor.value.getHTML();
@@ -296,39 +317,64 @@ onMounted(() => {
     const formattedContent = formatHTML(initialContent);
     emit("update:content", formattedContent);
   }
+
+  editorInitialized.value = true;
 });
 
+// Handle raw content changes
+const handleRawContentChange = (event: Event) => {
+  const target = event.target as HTMLTextAreaElement;
+  localContent.value = target.value;
+  previewContent.value = target.value;
+  emit("update:content", target.value);
+};
+
+// Watch raw mode changes
+watch(rawMode, (newValue) => {
+  if (editor.value) {
+    if (!newValue) {
+      editor.value.commands.setContent(localContent.value, false, {
+        preserveWhitespace: "full",
+      });
+      previewContent.value = localContent.value;
+    }
+  }
+});
+
+// Watch content prop changes
 watch(
   () => props.content,
-  (newContent, oldContent) => {
-    if (newContent !== undefined && editor.value) {
-      const { from, to } = editor.value.state.selection;
-      const parsedContent = parseMarkdownToHTML(newContent);
-      const formattedContent = formatHTML(parsedContent);
+  (newContent) => {
+    if (!editor.value || newContent === undefined) return;
 
-      if (formattedContent !== localContent.value || isInitialContent.value) {
-        editor.value.commands.setContent(formattedContent, false);
-        localContent.value = formattedContent;
+    // Get current cursor position
+    const { from, to } = editor.value.state.selection;
 
-        if (isInitialContent.value) {
-          originalContent.value = formattedContent;
-          isInitialContent.value = false;
-          emit("update:content", formattedContent);
+    const currentContent = editor.value.getHTML();
+    const parsedContent = parseMarkdownToHTML(newContent);
+
+    // Only update if content actually changed
+    if (currentContent !== parsedContent) {
+      editor.value.commands.setContent(parsedContent, false);
+
+      // Restore cursor position after content update
+      setTimeout(() => {
+        if (editor.value) {
+          editor.value.commands.setTextSelection({ from, to });
         }
-
-        setTimeout(() => {
-          if (editor.value) {
-            editor.value.commands.setTextSelection({ from, to });
-          }
-        }, 0);
-      }
+      }, 0);
     }
+
+    // Update local state
+    const formattedContent = formatHTML(parsedContent);
+    localContent.value = formattedContent;
+    previewContent.value = formattedContent;
+    originalContent.value = formattedContent;
   },
-  { immediate: true }
+  { deep: true }
 );
 
 const hasChanges = computed(() => {
-  if (!localContent.value || !originalContent.value) return false;
   return localContent.value !== originalContent.value;
 });
 
@@ -341,9 +387,6 @@ const saveToDisk = async () => {
       throw new Error("Please log in to GitHub first");
     }
 
-    const contentToSave = formatHTML(localContent.value);
-
-    // Clear Nuxt's content cache before saving
     if (process.client) {
       const nuxtApp = useNuxtApp();
       const storage = nuxtApp.$content?.storage;
@@ -352,8 +395,8 @@ const saveToDisk = async () => {
       }
     }
 
-    emit("save", contentToSave);
-    originalContent.value = contentToSave;
+    emit("save", localContent.value);
+    originalContent.value = localContent.value;
   } catch (error) {
     console.error("Save error:", error);
     showToast({
@@ -384,6 +427,7 @@ onBeforeUnmount(() => {
         <pre>Original content length: {{ originalContent?.length }}</pre>
         <pre>Preview mode: {{ previewMode }}</pre>
         <pre>Raw mode: {{ rawMode }}</pre>
+        <pre>Editor initialized: {{ editorInitialized }}</pre>
       </div>
     </div>
 
@@ -490,6 +534,7 @@ onBeforeUnmount(() => {
               </button>
             </div>
             <editor-content
+              v-if="editorInitialized"
               :editor="editor"
               class="markdown-editor"
               :class="{ 'has-changes': hasChanges }"
@@ -497,24 +542,16 @@ onBeforeUnmount(() => {
           </template>
 
           <div v-else-if="rawMode" class="raw-content-wrapper">
-            <pre class="raw-content">{{ localContent }}</pre>
+            <textarea
+              v-model="localContent"
+              class="raw-content"
+              spellcheck="false"
+              @input="handleRawContentChange"
+            ></textarea>
           </div>
 
           <div v-else class="preview-wrapper">
-            <div class="prose">
-              <ContentDoc
-                :path="getPreviewPath"
-                :key="previewKey"
-                :head="false"
-              >
-                <template #empty>
-                  <p>No content found.</p>
-                </template>
-                <template #not-found>
-                  <p>Content not found. Path: {{ getPreviewPath }}</p>
-                </template>
-              </ContentDoc>
-            </div>
+            <div class="prose" v-html="previewContent"></div>
           </div>
         </div>
       </div>
@@ -532,7 +569,6 @@ onBeforeUnmount(() => {
   background: white;
 }
 
-/* Debug panel styles */
 .debug-info {
   position: fixed;
   top: 0;
@@ -586,7 +622,6 @@ onBeforeUnmount(() => {
   background: #fafafa;
 }
 
-/* Preview styles */
 .preview-wrapper {
   flex: 1;
   overflow-y: auto;
@@ -641,7 +676,6 @@ onBeforeUnmount(() => {
   margin: 1.5em 0;
 }
 
-/* Editor styles */
 .prose-editor {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif;
@@ -650,7 +684,6 @@ onBeforeUnmount(() => {
   color: #000000;
 }
 
-/* Toolbar styles */
 .editor-toolbar {
   display: flex;
   justify-content: space-between;
@@ -706,13 +739,16 @@ onBeforeUnmount(() => {
   border-color: #d1d5db;
 }
 
-/* File path */
+.toolbar-button.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .file-path {
   color: #374151;
   font-size: 0.875rem;
 }
 
-/* Login prompt */
 .login-prompt {
   display: flex;
   flex-direction: column;
@@ -738,7 +774,44 @@ onBeforeUnmount(() => {
   background: #2d2d2d;
 }
 
-/* Editor styles */
+.raw-content-wrapper {
+  flex: 1;
+  display: flex;
+  background: #1e1e1e;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.raw-content {
+  flex: 1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #d4d4d4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  tab-size: 2;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  padding: 1rem;
+  resize: none;
+  outline: none;
+  caret-color: #fff;
+  overflow: auto;
+}
+
+.raw-content:focus {
+  outline: none;
+}
+
+.raw-content::selection {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .prose-editor h1 {
   font-size: 2em;
   font-weight: 600;
@@ -781,22 +854,10 @@ onBeforeUnmount(() => {
   border-radius: 4px;
 }
 
-/* Raw content styles */
-.raw-content-wrapper {
-  flex: 1;
-  overflow-y: auto;
-  padding: 2rem;
-  background: #1e1e1e;
-}
-
-.raw-content {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #d4d4d4;
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin: 0;
-  tab-size: 2;
+.color-wheel-node {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f5f5f5;
+  border-radius: 4px;
 }
 </style>

@@ -10,7 +10,10 @@
             <DesignSidebar />
           </aside>
 
-          <div class="main-content">
+          <div
+            class="main-content"
+            :class="{ 'with-sidebar': !isEditing && showSidebar }"
+          >
             <!-- Content header with edit controls -->
             <div class="content-header">
               <ClientOnly>
@@ -38,7 +41,7 @@
                   @error="handleEditorError"
                 />
               </div>
-              <div v-else class="prose">
+              <div v-else class="prose-content">
                 <div :key="contentKey">
                   <ContentDoc :path="path" :head="false">
                     <template #empty>
@@ -364,14 +367,16 @@ onMounted(() => {
 
 <style>
 /* Global prose styles */
-.prose {
-  margin: 0 auto;
+.prose-content {
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
   color: #000000;
   font-size: 16px;
   line-height: 1.6;
 }
 
-.prose h1 {
+.prose-content h1 {
   font-size: 2em;
   margin: 1.2em 0 0.6em;
   font-weight: 600;
@@ -379,7 +384,7 @@ onMounted(() => {
   color: #000000;
 }
 
-.prose h2 {
+.prose-content h2 {
   font-size: 1.5em;
   margin: 1em 0 0.5em;
   font-weight: 600;
@@ -387,7 +392,7 @@ onMounted(() => {
   color: #000000;
 }
 
-.prose h3 {
+.prose-content h3 {
   font-size: 1.25em;
   margin: 0.8em 0 0.4em;
   font-weight: 600;
@@ -395,35 +400,35 @@ onMounted(() => {
   color: #000000;
 }
 
-.prose p {
+.prose-content p {
   margin: 1em 0;
   color: #000000;
 }
 
-.prose ul,
-.prose ol {
+.prose-content ul,
+.prose-content ol {
   margin: 1em 0;
   padding-left: 1.5em;
   color: #000000;
 }
 
-.prose li {
+.prose-content li {
   margin: 0.5em 0;
 }
 
-.prose a {
+.prose-content a {
   color: #4361ee;
   text-decoration: underline;
 }
 
-.prose blockquote {
+.prose-content blockquote {
   border-left: 4px solid #e5e7eb;
   margin: 1.5em 0;
   padding-left: 1em;
   color: #4b5563;
 }
 
-.prose code {
+.prose-content code {
   background: #f3f4f6;
   padding: 0.2em 0.4em;
   border-radius: 4px;
@@ -431,7 +436,7 @@ onMounted(() => {
   font-family: ui-monospace, monospace;
 }
 
-.prose pre {
+.prose-content pre {
   background: #f3f4f6;
   padding: 1em;
   border-radius: 6px;
@@ -439,20 +444,20 @@ onMounted(() => {
   margin: 1.5em 0;
 }
 
-.prose pre code {
+.prose-content pre code {
   background: none;
   padding: 0;
   font-size: 0.9em;
   color: #000000;
 }
 
-.prose img {
+.prose-content img {
   max-width: 100%;
   height: auto;
   margin: 1.5em 0;
 }
 
-.prose hr {
+.prose-content hr {
   border: 0;
   border-top: 1px solid #e5e7eb;
   margin: 2em 0;
@@ -477,20 +482,27 @@ onMounted(() => {
 
 .sidebar {
   width: 240px;
-  padding: 32px 0;
+  flex-shrink: 0;
   border-right: 1px solid #e5e7eb;
   background: white;
 }
 
 .main-content {
   flex: 1;
-  padding: 32px;
+  max-width: 100%;
+  padding: 0;
+}
+
+.main-content.with-sidebar {
+  padding: 0;
 }
 
 .content-header {
-  margin-bottom: 24px;
+  padding: 24px 32px;
   display: flex;
   justify-content: flex-end;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .edit-button {
@@ -513,5 +525,6 @@ onMounted(() => {
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   min-height: calc(100vh - 200px);
+  margin: 0;
 }
 </style>
