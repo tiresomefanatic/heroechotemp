@@ -5,10 +5,13 @@
       <div v-if="data">
         <Header />
         <div class="content-area" :class="{ 'editing-mode': isEditing }">
+          <!-- Sidebar shown only in non-editing mode -->
           <aside v-if="!isEditing && showSidebar" class="sidebar">
             <DesignSidebar />
           </aside>
+
           <div class="main-content">
+            <!-- Content header with edit controls -->
             <div class="content-header">
               <ClientOnly>
                 <button
@@ -24,6 +27,7 @@
               </ClientOnly>
             </div>
 
+            <!-- Main content area -->
             <ClientOnly>
               <div v-if="isEditing" class="editor-container">
                 <TiptapEditor
@@ -35,11 +39,16 @@
                 />
               </div>
               <div v-else class="prose">
-                <ContentRenderer v-if="data" :value="data">
-                  <template #empty>
-                    <p>No content found.</p>
-                  </template>
-                </ContentRenderer>
+                <div :key="contentKey">
+                  <ContentDoc :path="path" :head="false">
+                    <template #empty>
+                      <p>No content found.</p>
+                    </template>
+                    <template #not-found>
+                      <p>Content not found. Path: {{ path }}</p>
+                    </template>
+                  </ContentDoc>
+                </div>
               </div>
             </ClientOnly>
           </div>
@@ -50,16 +59,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { useRoute } from "vue-router";
 import { queryContent } from "#imports";
 import { useGithub } from "~/composables/useGithub";
 import { useToast } from "~/composables/useToast";
+import { useAsyncData } from "#app";
 import TiptapEditor from "~/components/TiptapEditor.vue";
 import DesignSidebar from "~/components/DesignSidebar.vue";
 import Header from "~/components/Header.vue";
+import { useRuntimeConfig, useNuxtApp } from "#app";
 
-// Initialize composables and services
+// Initialize GitHub functionality and services
 const { getRawContent, saveFileContent, isLoggedIn, currentBranch } =
   useGithub();
 const { showToast } = useToast();
@@ -67,26 +78,34 @@ const { showToast } = useToast();
 // State management
 const loading = ref(false);
 const isEditing = ref(false);
-const editorContent = ref(""); // Holds the current editor content
-const originalContent = ref(""); // Store the initial content for comparison
+const editorContent = ref("");
+const contentLastModified = ref<string | null>(null);
 
-// Route handling
+// Route handling setup
 const route = useRoute();
 const slug = route.params.slug || [];
 const path = Array.isArray(slug) ? slug.join("/") : slug;
 
-// Compute whether to show sidebar
+// Compute whether to show sidebar based on path
 const showSidebar = computed(() => path !== "");
+const contentKey = computed(() => `${path}-${Date.now()}`);
 
 // Content queries for initial page load
-const { data, refresh } = await useAsyncData(`content-${path}`, () => {
-  if (!path) {
-    return queryContent().where({ _path: "/" }).findOne();
+const { data } = await useAsyncData(
+  `content-${path}`,
+  () => {
+    if (!path) {
+      return queryContent().where({ _path: "/" }).findOne();
+    }
+    return queryContent()
+      .where({ _path: `/${path}` })
+      .findOne();
+  },
+  {
+    immediate: true,
+    server: true,
   }
-  return queryContent()
-    .where({ _path: `/${path}` })
-    .findOne();
-});
+);
 
 // Compute the content file path
 const contentPath = computed(() => {
@@ -94,33 +113,107 @@ const contentPath = computed(() => {
   return `content/${path}.md`;
 });
 
-// Load content from GitHub
-const loadContent = async () => {
-  loading.value = true;
+/**
+ * Check if content needs to be refreshed by checking latest commit
+ */
+const checkContentFreshness = async () => {
   try {
-    console.log(`Loading content from branch: ${currentBranch.value}`);
-
-    // Fetch the raw content from GitHub
-    const content = await getRawContent(
-      "tiresomefanatic",
-      "heroechotemp",
-      contentPath.value,
-      currentBranch.value
+    // Use GitHub API to get latest commit for the file
+    const response = await fetch(
+      `https://api.github.com/repos/tiresomefanatic/heroechotemp/commits?path=${contentPath.value}&sha=${currentBranch.value}`,
+      { headers: { Accept: "application/vnd.github.v3+json" } }
     );
 
-    // Store both the editor content and original content
-    editorContent.value = content;
-    originalContent.value = content; // Keep track of the original content
+    if (!response.ok) {
+      throw new Error("Failed to fetch commit info");
+    }
 
-    await refresh();
+    const commits = await response.json();
+    const latestCommitSha = commits[0]?.sha;
 
-    console.log("Content loaded successfully:", {
-      contentPath: contentPath.value,
-      contentLength: content.length,
-      excerpt: content.slice(0, 50),
-    });
+    if (latestCommitSha !== contentLastModified.value) {
+      console.log("New commit detected, refreshing content...");
+      contentLastModified.value = latestCommitSha;
+      return true;
+    }
+    return false;
   } catch (error) {
-    console.error(`Error loading content:`, error);
+    console.error("Error checking content freshness:", error);
+    return true; // Refresh on error to be safe
+  }
+};
+
+/**
+ * Loads fresh content from GitHub.
+ * This function ensures we always get the latest content by forcing a new fetch
+ * and refreshing the local content state.
+ */
+const loadContent = async (force = false) => {
+  loading.value = true;
+  try {
+    const needsRefresh = force || (await checkContentFreshness());
+
+    if (needsRefresh) {
+      console.log(`Fetching fresh content at ${new Date().toISOString()}`);
+      console.log(`Branch: ${currentBranch.value}, Path: ${contentPath.value}`);
+
+      // Get raw content from GitHub
+      const content = await getRawContent(
+        "tiresomefanatic",
+        "heroechotemp",
+        contentPath.value,
+        currentBranch.value
+      );
+
+      console.log("Raw content fetched:", {
+        length: content?.length || 0,
+        preview: content?.substring(0, 500),
+      });
+
+      // Update editor content
+      editorContent.value = content;
+
+      if (process.client) {
+        // Access Nuxt's content storage directly
+        const nuxtApp = useNuxtApp();
+        const storage = nuxtApp.$content?.storage;
+
+        console.log("Current content storage:", storage);
+
+        // Force Nuxt to clear its content cache
+        if (storage) {
+          await storage.clearAll();
+          console.log("Cleared content storage");
+        }
+
+        // Reload the page content
+        const query = !path
+          ? queryContent().where({ _path: "/" })
+          : queryContent().where({ _path: `/${path}` });
+
+        const newData = await query.findOne();
+        console.log("New content fetched:", newData);
+
+        // Update the data reference
+        data.value = newData;
+
+        // Add debug log for final data state
+        console.log("Final data state:", {
+          dataValue: data.value,
+          path: path,
+          contentPath: contentPath.value,
+        });
+      }
+
+      console.log("Content loaded and refreshed successfully");
+    }
+  } catch (error) {
+    console.error("Content loading error:", error);
+    console.error("Full error details:", {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    });
     showToast({
       title: "Error",
       message: `Failed to load content from branch: ${currentBranch.value}`,
@@ -131,7 +224,18 @@ const loadContent = async () => {
   }
 };
 
-// Handle edit button click
+/**
+ * Handle visibility change event
+ */
+const handleVisibilityChange = async () => {
+  if (document.visibilityState === "visible" && !isEditing.value) {
+    await loadContent();
+  }
+};
+
+/**
+ * Handles the edit button click.
+ */
 const handleEditClick = async () => {
   if (!isLoggedIn.value) {
     showToast({
@@ -143,21 +247,16 @@ const handleEditClick = async () => {
   }
 
   isEditing.value = true;
-  await loadContent(); // This will set both editorContent and originalContent
+  await loadContent(true);
 };
 
-// Handle content changes from the editor
 const handleContentChange = (newContent: string) => {
-  console.log("Content changed:", {
-    previousLength: editorContent.value.length,
-    newLength: newContent.length,
-    hasChanged: newContent !== originalContent.value,
-  });
-
   editorContent.value = newContent;
 };
 
-// Handle content save
+/**
+ * Handles saving content to GitHub.
+ */
 const handleSave = async (content: string) => {
   if (!content || !isLoggedIn.value) {
     showToast({
@@ -169,7 +268,7 @@ const handleSave = async (content: string) => {
   }
 
   try {
-    console.log(`Saving to branch: ${currentBranch.value}`);
+    console.log(`Saving content to branch: ${currentBranch.value}`);
     const result = await saveFileContent(
       "tiresomefanatic",
       "heroechotemp",
@@ -186,12 +285,7 @@ const handleSave = async (content: string) => {
         type: "success",
       });
 
-      // Update both editor and original content after successful save
-      originalContent.value = content;
-      editorContent.value = content;
-
-      // Refresh the page content and exit edit mode
-      await refresh();
+      await loadContent(true);
       isEditing.value = false;
     } else {
       throw new Error(`Failed to save to branch: ${currentBranch.value}`);
@@ -206,7 +300,6 @@ const handleSave = async (content: string) => {
   }
 };
 
-// Handle editor errors
 const handleEditorError = (error: Error) => {
   showToast({
     title: "Editor Error",
@@ -215,43 +308,63 @@ const handleEditorError = (error: Error) => {
   });
 };
 
-// Handle exit editor
 const exitEditor = async () => {
-  // Reload the content to discard changes
-  await loadContent();
+  await loadContent(true);
   isEditing.value = false;
 };
 
 // Watch for editing mode changes
-watch(
-  [editorContent, isEditing],
-  async ([newContent, editing], [oldContent, wasEditing]) => {
-    if (editing && !wasEditing) {
-      await loadContent();
-    }
-  }
-);
-
-// Watch for branch changes
-watch(currentBranch, async (newBranch, oldBranch) => {
-  if (newBranch !== oldBranch && isEditing.value) {
-    console.log(
-      `Branch changed from ${oldBranch} to ${newBranch}, reloading content...`
-    );
-    await loadContent();
+watch(isEditing, async (newValue, oldValue) => {
+  if (newValue && !oldValue) {
+    await loadContent(true);
   }
 });
 
-// Load initial content on mount
-onMounted(async () => {
-  await loadContent();
+// Watch for branch changes
+watch(currentBranch, async (newBranch, oldBranch) => {
+  if (newBranch !== oldBranch) {
+    console.log(
+      `Branch changed from ${oldBranch} to ${newBranch}, reloading content...`
+    );
+    await loadContent(true);
+  }
+});
+
+// Watch for path changes
+watch(contentPath, async (newPath, oldPath) => {
+  if (newPath !== oldPath) {
+    await loadContent(true);
+  }
+});
+
+// Setup content refresh and event handlers only on client side
+onMounted(() => {
+  if (process.client) {
+    // Initial content load
+    loadContent(true);
+
+    // Setup visibility change handler
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Setup polling only on client side
+    const contentRefreshInterval = setInterval(async () => {
+      if (!isEditing.value) {
+        await loadContent();
+      }
+    }, 30000);
+
+    // Cleanup function
+    onBeforeUnmount(() => {
+      clearInterval(contentRefreshInterval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    });
+  }
 });
 </script>
 
 <style>
 /* Global prose styles */
 .prose {
-  max-width: 720px;
   margin: 0 auto;
   color: #000000;
   font-size: 16px;

@@ -7,7 +7,7 @@ import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
 import Image from "@tiptap/extension-image";
-import { Extension } from "@tiptap/core";
+import ColorWheelExtension from "../extensions/colorWheelExtension";
 import CollaborationSidebar from "~/components/CollaborationSidebar.vue";
 import { useGithub } from "~/composables/useGithub";
 import { useToast } from "~/composables/useToast";
@@ -42,18 +42,33 @@ const showDebugInfo = computed(() => {
   return process.env.NODE_ENV === "development";
 });
 
-// Format HTML while preserving structure and formatting
+// Enhanced formatHTML function with proper markdown and component handling
 const formatHTML = (html: string): string => {
-  // First, preserve inline formatting elements by replacing them temporarily
+  if (!html) return "";
+
+  // First handle special components and markdown containers
+  html = html
+    // Convert color wheel div to markdown container syntax
+    .replace(
+      /<div[^>]*data-type="color-wheel"[^>]*>.*?<\/div>/g,
+      "\n::color-wheel\n::\n"
+    )
+    // Convert test component div to markdown container syntax
+    .replace(
+      /<div[^>]*data-type="test-component"[^>]*>.*?<\/div>/g,
+      "\n::test-component\n::\n"
+    );
+
+  // Preserve inline formatting elements
   let formattedHTML = html
     .replace(/<strong>/g, "§§STRONG§§")
     .replace(/<\/strong>/g, "§§/STRONG§§")
     .replace(/<em>/g, "§§EM§§")
     .replace(/<\/em>/g, "§§/EM§§");
 
-  // Add newlines and indentation for block elements
+  // Handle block elements and spacing
   formattedHTML = formattedHTML
-    .replace(/></g, ">\n<") // Add newlines between elements
+    .replace(/></g, ">\n<")
     .replace(
       /(<div[^>]*>|<\/div>|<p>|<\/p>|<h[1-6]>|<\/h[1-6]>|<ul>|<\/ul>|<ol>|<\/ol>|<li>|<\/li>)/g,
       (match) => `\n${match}\n`
@@ -61,36 +76,42 @@ const formatHTML = (html: string): string => {
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
-    .map((line, _, array) => {
-      // Calculate indentation level
-      const indentLevel = array
-        .slice(0, array.indexOf(line))
-        .reduce((count, prevLine) => {
-          if (prevLine.match(/<(div|p|h[1-6]|ul|ol|li)[^>]*>/)) count++;
-          if (prevLine.match(/<\/(div|p|h[1-6]|ul|ol|li)>/)) count--;
-          return count;
-        }, 0);
-
-      return "  ".repeat(Math.max(0, indentLevel)) + line;
-    })
     .join("\n");
 
-  // Restore inline formatting elements
+  // Restore inline formatting
   formattedHTML = formattedHTML
     .replace(/§§STRONG§§/g, "<strong>")
     .replace(/§§\/STRONG§§/g, "</strong>")
     .replace(/§§EM§§/g, "<em>")
     .replace(/§§\/EM§§/g, "</em>");
 
+  // Clean up extra newlines
+  formattedHTML = formattedHTML.replace(/\n{3,}/g, "\n\n").trim();
+
   return formattedHTML;
 };
 
-// Custom Document extension to handle block-level elements
+// Custom Document extension with enhanced block handling
 const CustomDocument = Document.extend({
   content: "block+",
 });
 
-// Initialize editor
+// Parse markdown containers to HTML
+const parseMarkdownToHTML = (content: string): string => {
+  if (!content) return "";
+
+  return (
+    content
+      // Convert markdown containers to divs
+      .replace(/::color-wheel\s*::/g, '<div data-type="color-wheel"></div>')
+      .replace(
+        /::test-component\s*::/g,
+        '<div data-type="test-component"></div>'
+      )
+  );
+};
+
+// Initialize editor with enhanced configuration
 onMounted(() => {
   editor.value = new Editor({
     extensions: [
@@ -101,6 +122,11 @@ onMounted(() => {
       Image.configure({
         inline: true,
       }),
+      ColorWheelExtension.configure({
+        HTMLAttributes: {
+          class: "color-wheel-node",
+        },
+      }),
     ],
     editorProps: {
       attributes: {
@@ -109,42 +135,44 @@ onMounted(() => {
       },
     },
     onUpdate: ({ editor: ed }) => {
-      // Get new content and format it
+      // Store current selection before formatting
+      const { from, to } = ed.state.selection;
+
       const rawContent = ed.getHTML();
       const formattedContent = formatHTML(rawContent);
 
-      // Update local content
-      localContent.value = formattedContent;
+      // Only update if content actually changed
+      if (formattedContent !== localContent.value) {
+        localContent.value = formattedContent;
+        emit("update:content", formattedContent);
 
-      // Log content state for debugging
-      console.log("Content Update:", {
-        raw: rawContent.slice(0, 100),
-        formatted: formattedContent.slice(0, 100),
-        hasInlineFormatting:
-          formattedContent.includes("<strong>") ||
-          formattedContent.includes("<em>"),
-      });
-
-      // Emit update event
-      emit("update:content", formattedContent);
+        // Use setTimeout to let Vue render complete before restoring selection
+        setTimeout(() => {
+          if (editor.value) {
+            editor.value.commands.setTextSelection({ from, to });
+          }
+        }, 0);
+      }
+    },
+    parseOptions: {
+      preserveWhitespace: true,
     },
   });
 
-  // Set initial content
+  // Initialize content
   if (props.content) {
-    const formattedContent = formatHTML(props.content);
-
-    console.log("Setting initial content:", {
-      contentLength: formattedContent.length,
-      hasFormatting:
-        formattedContent.includes("<strong>") ||
-        formattedContent.includes("<em>"),
-    });
-
-    // Initialize editor and content states
-    editor.value.commands.setContent(formattedContent);
+    const parsedContent = parseMarkdownToHTML(props.content);
+    const formattedContent = formatHTML(parsedContent);
+    editor.value.commands.setContent(formattedContent, false);
     localContent.value = formattedContent;
     originalContent.value = formattedContent;
+  }
+
+  // Force an initial content update after editor is ready
+  const initialContent = editor.value.getHTML();
+  if (initialContent) {
+    const formattedContent = formatHTML(initialContent);
+    emit("update:content", formattedContent);
   }
 });
 
@@ -153,62 +181,50 @@ watch(
   () => props.content,
   (newContent, oldContent) => {
     if (newContent !== undefined && editor.value) {
-      const formattedContent = formatHTML(newContent);
+      // Store current selection state
+      const { from, to } = editor.value.state.selection;
 
-      // Store cursor position
-      const currentCursor = editor.value.state.selection;
+      const parsedContent = parseMarkdownToHTML(newContent);
+      const formattedContent = formatHTML(parsedContent);
 
-      // Update editor content
-      editor.value.commands.setContent(formattedContent);
-      localContent.value = formattedContent;
+      // Update if content changed or if this is the initial content
+      if (formattedContent !== localContent.value || isInitialContent.value) {
+        editor.value.commands.setContent(formattedContent, false);
+        localContent.value = formattedContent;
 
-      // Only set original content on initial load
-      if (isInitialContent.value) {
-        originalContent.value = formattedContent;
-        isInitialContent.value = false;
+        // Handle initial content
+        if (isInitialContent.value) {
+          originalContent.value = formattedContent;
+          isInitialContent.value = false;
+          // Force an update event for initial content
+          emit("update:content", formattedContent);
+        }
+
+        // Restore cursor position after update
+        setTimeout(() => {
+          if (editor.value) {
+            editor.value.commands.setTextSelection({ from, to });
+          }
+        }, 0);
       }
-
-      // Restore cursor position
-      if (currentCursor) {
-        editor.value.commands.setTextSelection(currentCursor.from);
-      }
-
-      console.log("Content updated from prop:", {
-        hasChanges: hasChanges.value,
-        hasFormatting:
-          formattedContent.includes("<strong>") ||
-          formattedContent.includes("<em>"),
-      });
     }
-  }
+  },
+  { immediate: true } // Add immediate option to handle initial value
 );
 
 // Improved change detection
 const hasChanges = computed(() => {
-  if (!localContent.value || !originalContent.value) {
-    return false;
-  }
-
-  // Compare formatted content
-  const isDifferent = localContent.value !== originalContent.value;
-
-  // Log change detection details
-  console.log("Change Detection:", {
-    isDifferent,
-    localFormatting: localContent.value.match(/<(strong|em)>/g)?.length || 0,
-    originalFormatting:
-      originalContent.value.match(/<(strong|em)>/g)?.length || 0,
-  });
-
-  return isDifferent;
+  if (!localContent.value || !originalContent.value) return false;
+  return localContent.value !== originalContent.value;
 });
 
-// Preview content
+// Preview content with proper formatting
 const previewContent = computed(() => {
-  return localContent.value || "";
+  if (!localContent.value) return "";
+  return `<div class="prose">${parseMarkdownToHTML(localContent.value)}</div>`;
 });
 
-// Save content
+// Enhanced save functionality
 const saveToDisk = async () => {
   if (!hasChanges.value || isSaving.value) return;
 
@@ -218,7 +234,6 @@ const saveToDisk = async () => {
       throw new Error("Please log in to GitHub first");
     }
 
-    // Ensure content is properly formatted before saving
     const contentToSave = formatHTML(localContent.value);
     emit("save", contentToSave);
     originalContent.value = contentToSave;
@@ -336,6 +351,20 @@ onBeforeUnmount(() => {
               >
                 List
               </button>
+              <button
+                @click="
+                  editor
+                    .chain()
+                    .focus()
+                    .insertContent({
+                      type: 'colorWheel',
+                    })
+                    .run()
+                "
+                class="toolbar-button"
+              >
+                Add Color Wheel
+              </button>
             </div>
             <editor-content
               :editor="editor"
@@ -345,7 +374,7 @@ onBeforeUnmount(() => {
           </template>
 
           <div v-else class="preview-wrapper">
-            <div class="preview-content" v-html="previewContent"></div>
+            <div v-html="previewContent" class="preview-content"></div>
           </div>
         </div>
       </div>
@@ -419,23 +448,60 @@ onBeforeUnmount(() => {
 
 /* Preview styles */
 .preview-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: white;
+  flex: 1;
   overflow-y: auto;
+  padding: 2rem;
+  background: white;
 }
 
 .preview-content {
-  padding: 2rem;
-  background: white;
-  color: #000000;
+  max-width: 720px;
+  margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif;
 }
 
+.prose {
+  color: #000000;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.prose h1 {
+  font-size: 2em;
+  margin: 1.2em 0 0.6em;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.prose h2 {
+  font-size: 1.5em;
+  margin: 1em 0 0.5em;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.prose p {
+  margin: 1em 0;
+}
+
+.prose ul,
+.prose ol {
+  margin: 1em 0;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin: 0.5em 0;
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+  margin: 1.5em 0;
+}
+
+/* Editor styles */
 .prose-editor {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif;
@@ -493,6 +559,11 @@ onBeforeUnmount(() => {
 
 .toolbar-button.primary:hover {
   background: #3651d4;
+}
+
+.toolbar-button.active {
+  background: #f3f4f6;
+  border-color: #d1d5db;
 }
 
 /* File path */
