@@ -1,5 +1,5 @@
 <div style="width: 100%; margin: 0; padding: 0;">
-<div style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
+<div style="max-width: 100%; margin: 0 auto; padding: 0;">
 
 <h1 style="font-size: 2.5rem; font-weight: 500; margin: 0 0 1.5rem;">Introduction</h1>
 
