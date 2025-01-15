@@ -12,7 +12,7 @@ description: Echo Design System application guidel
 
 # Applications
 
-Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam dolor lacinia.
+Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretiumnsectetur venenatis lacus quam dolor lacinia.
 
 <div class="applications-section">
   <div class="section-heading">

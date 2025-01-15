@@ -1,1 +1,0 @@
-{"file":"ProseHr-BTalcar1.js","mappings":";;;;;;;;;;;;;;;;;;;;AAAA,SAAA,eAAA,MAAA,OAAA,SAAA,QAAA;;;;;;;;;;","names":[],"sources":["../../../../node_modules/@nuxtjs/mdc/dist/runtime/components/prose/ProseHr.vue"],"sourcesContent":["<template>\n  <hr>\n</template>\n"],"version":3}

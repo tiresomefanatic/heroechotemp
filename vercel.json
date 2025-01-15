@@ -1,14 +1,6 @@
 {
-  "version": 2,
   "framework": "nuxtjs",
-  "buildCommand": "rm -rf node_modules && npm install && npm run build",
+  "buildCommand": "npm run build",
   "devCommand": "nuxt",
-  "outputDirectory": ".output/public",
-  "installCommand": "npm install",
-  "builds": [
-    {
-      "src": ".output/public/**",
-      "use": "@vercel/static"
-    }
-  ]
+  "installCommand": "npm install"
 }

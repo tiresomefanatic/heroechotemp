@@ -103,11 +103,13 @@ export default defineNuxtConfig({
 
   // Vercel deployment configuration
   nitro: {
-    preset: "vercel",
+    preset: "vercel-edge",
     prerender: {
       crawlLinks: true,
     },
   },
+
+  ssr: true,
 
   compatibilityDate: "2025-01-07",
 });
