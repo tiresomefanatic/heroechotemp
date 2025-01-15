@@ -32,27 +32,27 @@
             >
             <div class="nav-item sub-item locked">
               Illustration
-              <span class="lock-icon">🔒</span>
+              <img src="/lock-icon.svg" alt="Locked" class="lock-icon" />
             </div>
             <div class="nav-item sub-item locked">
               Icons
-              <span class="lock-icon">🔒</span>
+              <img src="/lock-icon.svg" alt="Locked" class="lock-icon" />
             </div>
             <div class="nav-item sub-item locked">
               Layout
-              <span class="lock-icon">🔒</span>
+              <img src="/lock-icon.svg" alt="Locked" class="lock-icon" />
             </div>
             <div class="nav-item sub-item locked">
               Imagery
-              <span class="lock-icon">🔒</span>
+              <img src="/lock-icon.svg" alt="Locked" class="lock-icon" />
             </div>
             <div class="nav-item sub-item locked">
               Animation
-              <span class="lock-icon">🔒</span>
+              <img src="/lock-icon.svg" alt="Locked" class="lock-icon" />
             </div>
             <div class="nav-item sub-item locked">
               Applications
-              <span class="lock-icon">🔒</span>
+              <img src="/lock-icon.svg" alt="Locked" class="lock-icon" />
             </div>
           </div>
         </div>
@@ -61,7 +61,7 @@
         <div class="nav-group">
           <div class="nav-group-header main-item locked">
             Digital
-            <span class="lock-icon">🔒</span>
+            <img src="/lock-icon.svg" alt="Locked" class="lock-icon" />
           </div>
         </div>
 
@@ -69,7 +69,7 @@
         <div class="nav-group">
           <div class="nav-group-header main-item locked">
             Sound
-            <span class="lock-icon">🔒</span>
+            <img src="/lock-icon.svg" alt="Locked" class="lock-icon" />
           </div>
         </div>
 
