@@ -1,11 +1,11 @@
 <div style="display: flex; gap: 2rem;">
   <div style="flex: 1; max-width: 800px;">
     <h1 style="font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem;">Logo</h1>
-    <p style="margin: 1rem 0; line-height: 1.6;">Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam non ipsum.</p>
+    <p style="font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem; color: #757575; font-size: 16px; font-style: normal; font-weight: 400; line-height: 140%;">Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam non ipsum.</p>
     
  <div style="display: flex; gap: 2rem; margin: 3rem 0;">
       <div style="flex: 1;">
-        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Construction</h2>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 500; color: #000; line-height: 120%; letter-spacing: -0.48px;">Construction</h2>
       </div>
       <div style="flex: 2;">
         <div style="background: #f5f5f5; padding: 2rem; border-radius: 4px;">
@@ -19,7 +19,7 @@
 
    <div style="display: flex; gap: 2rem; margin: 3rem 0;">
       <div style="flex: 1;">
-        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Zig - Monogram</h2>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; color: #000; letter-spacing: -0.48px;">Zig - Monogram</h2>
       </div>
       <div style="flex: 2;">
      
@@ -37,7 +37,7 @@
 
    <div style="display: flex; gap: 2rem; margin: 3rem 0;">
       <div style="flex: 1;">
-        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Zig - Clearspaces</h2>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; color: #000; letter-spacing: -0.48px;">Zig - Clearspaces</h2>
       </div>
       <div style="flex: 2;">
         <div style="background: #f5f5f5; padding: 2rem; border-radius: 4px;">
@@ -53,7 +53,7 @@
 
    <div style="display: flex; gap: 2rem; margin: 3rem 0;">
       <div style="flex: 1;">
-        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Zig - Alignment</h2>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; color: #000; letter-spacing: -0.48px;">Zig - Alignment</h2>
       </div>
       <div style="flex: 2;">
         <div style="background: #f5f5f5; padding: 2rem; border-radius: 4px;">
