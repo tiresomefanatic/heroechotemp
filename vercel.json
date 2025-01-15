@@ -3,8 +3,8 @@
   "devCommand": "nuxt dev",
   "framework": "nuxtjs",
   "functions": {
-    "api/**": {
-      "runtime": "node18.x"
+    "api/*.js": {
+      "runtime": "nodejs18.x"
     }
   }
 }
