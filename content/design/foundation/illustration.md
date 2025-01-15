@@ -8,7 +8,7 @@ description: Echo Design System illustration documentation
 
 # Illustration
 
-Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam dolor lacinia.
+Lorem ipsum dolor sit amet consectetur. Et ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam dolor lacinia.
 
 <div class="illustration-section">
   <div class="section-heading">
