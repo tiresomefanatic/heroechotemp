@@ -1,5 +1,7 @@
 {
+  "framework": "nuxtjs",
   "buildCommand": "npm run build",
-  "devCommand": "nuxt dev",
-  "framework": "nuxtjs"
+  "devCommand": "nuxt",
+  "outputDirectory": ".output/public",
+  "installCommand": "npm install"
 }

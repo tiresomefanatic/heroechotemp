@@ -8,7 +8,7 @@ description: Echo Design System layout
 
 # Layout
 
-Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam dolor lacinia.
+Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium coctetur venenatis lacus quam dolor lacinia.
 
 <div class="layout-section">
   <div class="section-heading">
