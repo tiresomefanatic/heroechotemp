@@ -205,6 +205,8 @@ function toggleSection(section) {
   color: #000000;
   padding: 0.5rem 0.75rem;
   margin-left: 0.5rem;
+  line-height: 150%;
+  letter-spacing: 0.15px;
 }
 
 .nav-item {
@@ -217,7 +219,7 @@ function toggleSection(section) {
 }
 
 .nav-item.active {
-  background: rgba(0, 0, 0, 0.05);
+  background: #D8D8D8;
   font-weight: 500;
 }
 
