@@ -1,6 +1,6 @@
 <div style="width: 100%; margin: 0; padding: 0;">
-  <div style="margin: 0; padding: min(24px, 5vw);">
-    <img src="/images/hero-banner.png" alt="Foundation of Design Banner" style="width: 100%; display: block; margin: 0; border-radius: max(20px, 2vw);" />
+  <div style="margin: 0; padding: 24px;">
+    <img src="/images/hero-banner.png" alt="Foundation of Design Banner" style="width: 100%; display: block; margin: 0; border-radius: 20px;" />
   </div>
 
   <div style="width: 100%; max-width: 1512px; margin: 0 auto; padding: 0 clamp(16px, calc((100vw - 1512px) / 2 + 276px), 276px);">
@@ -43,16 +43,11 @@
     <p style="margin: 0; line-height: 1.6; color: #666; flex: 1;">Echo is the Design System we use to create Vida products. Our main goal is to offer everything in one place — assets, resources, files, and guidelines. Always accessible to the people that need them and always available in the spaces that we work in.</p>
 </div>
 
-<div style="background: #000; border-radius: 8px; padding: min(40px, 5vw); margin: 40px 0;">
+   <div style="background: #000; border-radius: 8px; padding: 40px; margin: 40px 0;">
       <img src="/images/foundation-concept.png" alt="Foundation concept visualization" style="width: 100%; height: auto; display: block;" />
     </div>
 
- <div style="margin: clamp(32px, 5vw, 64px) 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: min(24px, 3vw);">
-      <div>
-        <h2 style="font-size: clamp(1.25rem, 2vw, 1.5rem); font-weight: 600; margin: 0;">Goals</h2>
-      </div>
-      <div>
-        <p style="margin: 0 0 clamp(24px, 4vw, 40px); line-height: 1.6; color: #666; font-size: clamp(1.25rem, 2vw, 1.5rem);">Echo aims to:</p>
+ <div style="margin: 64px 0 0; display: grid; grid-template-columns: 1fr auto; gap: 24px;">
 
  <div>
     <h2 style="color: #000; font-size: 24px; font-style: normal; font-weight: 530; line-height: 120%; letter-spacing: -0.48px; margin: 0;">Goals</h2>
@@ -92,6 +87,7 @@
     <p style="color: #757575; font-size: 16px; font-style: normal; font-weight: 375; line-height: 140%; margin: 0; flex: 1;">Lorem ipsum dolor sit amet consectetur. Et et ultrices dolor ut vitae pharetra nullam dolor vestibulum pharetra et. Pretium consequat venenatis augue quam non leo rest fermentum nunc mi. Lacteeti id proin diam adipisicing laboris erat sed. Vestibulum risus sit elementum tortor.</p>
   </div>
   <div>
+
 
    </div>
     </div>
