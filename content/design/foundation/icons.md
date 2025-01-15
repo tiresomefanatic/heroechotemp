@@ -8,7 +8,7 @@ description: Echo Design System icons documentation
 
 # Icons
 
-Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam dolor lacinia.
+Lorem ipsum dolor sit amet consectetur. Et ut ultric ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consecttur venenatis lacus quam dolor lacinia.
 
 <div class="icon-section">
   <div class="section-heading">
