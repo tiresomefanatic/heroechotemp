@@ -72,6 +72,7 @@
   </div>
 
 </div>
+<hr style="background: #EBEBEB; border: 0; height: 1px;">
 <div style="margin: 64px 0 0;">
   <h2 style="font-size: 1.5rem; font-weight: 600; margin: 0 0 24px;">How did ECHO come <br/> about?</h2>
   
