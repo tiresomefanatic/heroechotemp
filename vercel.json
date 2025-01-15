@@ -1,0 +1,11 @@
+{
+  "version": 3,
+  "buildCommand": "nuxt build",
+  "devCommand": "nuxt dev",
+  "framework": "nuxt",
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
+}
