@@ -1,0 +1,5 @@
+const ____slug__vue_vue_type_style_index_1_scoped_639f0781_lang = ".page-wrapper[data-v-639f0781]{min-height:100vh;position:relative}.content-area[data-v-639f0781]{background:#fff;display:flex;min-height:calc(100vh - 64px)}.content-area.editing-mode[data-v-639f0781]{padding:32px}.sidebar[data-v-639f0781]{background:#fff;border-right:1px solid #e5e7eb;flex-shrink:0;width:240px}.main-content[data-v-639f0781]{flex:1;max-width:100%;padding:0}.main-content.with-sidebar[data-v-639f0781]{padding:0}.content-header[data-v-639f0781]{background:#fff;border-bottom:1px solid #e5e7eb;display:flex;justify-content:flex-end;padding:24px 32px}.edit-button[data-v-639f0781]{background:#4361ee;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:14px;padding:8px 16px;transition:background-color .2s ease}.edit-button[data-v-639f0781]:hover{background:#3651d4}.editor-container[data-v-639f0781]{background:#fff;border-radius:8px;box-shadow:0 1px 3px #0000001a;margin:0;min-height:calc(100vh - 200px)}";
+export {
+  ____slug__vue_vue_type_style_index_1_scoped_639f0781_lang as default
+};
+//# sourceMappingURL=_...slug_-styles-2.mjs-oOjlFGry.js.map

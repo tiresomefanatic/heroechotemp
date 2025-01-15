@@ -1,0 +1,2 @@
+import style_0 from './ColorWheelNode-styles-1.mjs-Cd-41-_g.js';
+export default [style_0]

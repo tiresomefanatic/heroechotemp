@@ -1,0 +1,2 @@
+import style_0 from './GithubLogin-styles-1.mjs-Bx4Svecb.js';
+export default [style_0]
