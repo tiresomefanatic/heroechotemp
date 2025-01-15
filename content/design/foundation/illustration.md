@@ -14,7 +14,7 @@ Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra 
   <div class="section-heading">
     <h2>Style</h2>
   </div>
-  <div class="section-content">
+<div class="section-content">
     <div class="style-grid">
       <img src="/images/illustration-style-1.svg" alt="Pen illustration" />
       <img src="/images/illustration-style-2.svg" alt="Charger illustration" />
@@ -50,7 +50,6 @@ Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra 
     </div>
   </div>
 </div>
-
 <div class="illustration-section">
   <div class="section-heading">
     <h2>Mascot illustration</h2>

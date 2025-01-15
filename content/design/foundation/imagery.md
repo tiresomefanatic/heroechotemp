@@ -8,7 +8,7 @@ description: Echo Design System imagery docution
 
 # Imagery
 
-Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam dolor lacinia.
+Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor u Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam dolor lacinia.
 
 <div class="imagery-section">
   <div class="section-heading">
