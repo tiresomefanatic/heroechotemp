@@ -483,7 +483,6 @@ onMounted(() => {
 .sidebar {
   width: 240px;
   flex-shrink: 0;
-  border-right: 1px solid #e5e7eb;
   background: white;
 }
 
