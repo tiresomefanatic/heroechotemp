@@ -33,7 +33,25 @@
 
       <!-- Pull Requests Tab -->
       <div v-if="activeTab === 'prs'" class="tab-content">
-        <div v-if="loading" class="loading">
+        <div class="pr-actions-header">
+          <button
+            class="create-pr-button"
+            @click="showCreatePR = true"
+            v-if="!showCreatePR"
+          >
+            Create Pull Request
+          </button>
+        </div>
+
+        <CreatePullRequest
+          v-if="showCreatePR"
+          :branches="branches"
+          :currentBranch="currentBranch"
+          @created="handlePRCreated"
+          @cancel="showCreatePR = false"
+        />
+
+        <div v-else-if="loading" class="loading">
           <div class="spinner"></div>
           Loading pull requests...
         </div>
@@ -157,9 +175,7 @@
             </button>
             <button class="action-button resolve" @click="resolveConflict">
               Accept
-              {{
-                selectedVersion === "current" ? "Current" : "Incoming"
-              }}
+              {{ selectedVersion === "current" ? "Current" : "Incoming" }}
               Changes
             </button>
           </div>
@@ -176,7 +192,11 @@
               <div class="current-branch">
                 <span class="label">Current Branch:</span>
                 <select :value="currentBranch" @change="handleBranchChange">
-                  <option v-for="branch in branches" :key="branch" :value="branch">
+                  <option
+                    v-for="branch in branches"
+                    :key="branch"
+                    :value="branch"
+                  >
                     {{ branch }}
                   </option>
                 </select>
@@ -210,6 +230,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useGithub } from "~/composables/useGithub";
 import { useToast } from "~/composables/useToast";
+import CreatePullRequest from "./CreatePullRequest.vue";
 
 // Define TypeScript interfaces for our data structures
 interface GitHubUser {
@@ -261,6 +282,7 @@ const commits = ref<Commit[]>([]);
 const currentConflict = ref<Conflict | null>(null);
 const selectedVersion = ref<"current" | "incoming">("current");
 const newBranchName = ref("");
+const showCreatePR = ref(false);
 
 // Initialize composables
 const { showToast } = useToast();
@@ -331,6 +353,12 @@ const toggleSidebar = () => {
 // Handle external link clicks
 const openPR = (url: string) => {
   window.open(url, "_blank");
+};
+
+// Handle PR creation success
+const handlePRCreated = async () => {
+  showCreatePR.value = false;
+  await loadPullRequests();
 };
 
 // Conflict resolution handling
@@ -419,28 +447,29 @@ onMounted(async () => {
 const handleBranchChange = async (event: Event) => {
   const select = event.target as HTMLSelectElement;
   const branchName = select.value;
-  
+
   try {
     loading.value = true;
     console.log(`Attempting to switch to branch: ${branchName}`);
     const success = await switchBranch(branchName);
-    
+
     if (success) {
       showToast({
-        title: 'Success',
+        title: "Success",
         message: `Switched to branch: ${branchName}`,
-        type: 'success'
+        type: "success",
       });
       await fetchBranches(); // Refresh branch list
     } else {
-      throw new Error('Failed to switch branch');
+      throw new Error("Failed to switch branch");
     }
   } catch (error) {
-    console.error('Error switching branch:', error);
+    console.error("Error switching branch:", error);
     showToast({
-      title: 'Error',
-      message: error instanceof Error ? error.message : 'Failed to switch branch',
-      type: 'error'
+      title: "Error",
+      message:
+        error instanceof Error ? error.message : "Failed to switch branch",
+      type: "error",
     });
     // Reset selection on error
     select.value = currentBranch.value;
@@ -457,24 +486,25 @@ const createNewBranch = async () => {
     loading.value = true;
     console.log(`Creating new branch: ${newBranchName.value}`);
     const result = await createBranch(newBranchName.value);
-    
+
     if (result) {
       showToast({
-        title: 'Success',
+        title: "Success",
         message: `Created and switched to branch: ${newBranchName.value}`,
-        type: 'success'
+        type: "success",
       });
       await fetchBranches(); // Refresh branch list
-      newBranchName.value = ''; // Clear input
+      newBranchName.value = ""; // Clear input
     } else {
-      throw new Error('Failed to create branch');
+      throw new Error("Failed to create branch");
     }
   } catch (error) {
-    console.error('Error creating branch:', error);
+    console.error("Error creating branch:", error);
     showToast({
-      title: 'Error',
-      message: error instanceof Error ? error.message : 'Failed to create branch',
-      type: 'error'
+      title: "Error",
+      message:
+        error instanceof Error ? error.message : "Failed to create branch",
+      type: "error",
     });
   } finally {
     loading.value = false;
@@ -883,7 +913,9 @@ h3 {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .section h3 {
@@ -900,5 +932,27 @@ h3 {
   padding: 1rem;
   background: #e9ecef;
   border-radius: 4px;
+}
+
+.pr-actions-header {
+  margin-bottom: 1rem;
+  padding: 0 0 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.create-pr-button {
+  padding: 0.5rem 1rem;
+  background: #000;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.create-pr-button:hover {
+  background: #1a1a1a;
 }
 </style>

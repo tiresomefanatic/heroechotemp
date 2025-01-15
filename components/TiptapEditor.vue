@@ -14,11 +14,79 @@ import CollaborationSidebar from "~/components/CollaborationSidebar.vue";
 import { useGithub } from "~/composables/useGithub";
 import { useToast } from "~/composables/useToast";
 import { useNuxtApp } from "#app";
+import AddContentDialog from "./AddContentDialog.vue";
+import type { editor as MonacoEditor } from "monaco-editor";
 
 interface Props {
   content?: string;
   filePath: string;
 }
+
+const handleInsertComponent = (componentId: string) => {
+  if (!editor.value) return;
+
+  switch (componentId) {
+    case "colorwheel":
+      editor.value
+        .chain()
+        .focus()
+        .insertContent({
+          type: "colorWheel",
+        })
+        .run();
+      break;
+  }
+};
+
+const templates = {
+  "split-with-image": `
+    <div style="display: flex; gap: 2rem; margin: 3rem 0;">
+      <div style="flex: 1;">
+        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Section Title</h2>
+      </div>
+      <div style="flex: 2;">
+        <div style="background: #f5f5f5; padding: 2rem; border-radius: 4px;">
+          <img src="/api/placeholder/800/400" alt="Section Image" style="width: 100%; height: auto; display: block;" />
+        </div>
+        <h3 style="font-size: 1.25rem; font-weight: 600; margin: 1rem 0;">Add Subtitle</h3>
+        <p style="margin: 1rem 0; line-height: 1.6;">Add your description here.</p>
+        <p style="margin: 1rem 0; line-height: 1.6;">Add additional details here.</p>
+      </div>
+    </div>
+  `,
+  "split-with-list": `
+    <div style="display: flex; gap: 2rem; margin: 3rem 0;">
+      <div style="flex: 1;">
+        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Section Title</h2>
+      </div>
+      <div style="flex: 2;">
+        <img src="/api/placeholder/800/400" alt="Section Image" style="width: 100%; height: auto; display: block; padding: 2rem; border-radius: 4px;" />
+        <p style="margin: 1rem 0; line-height: 1.6;">Add your description here.</p>
+        <ul style="list-style: none; padding: 0; margin: 1rem 0;">
+          <li style="margin: 0.5rem 0; line-height: 1.6;">List item one</li>
+          <li style="margin: 0.5rem 0; line-height: 1.6;">List item two</li>
+          <li style="margin: 0.5rem 0; line-height: 1.6;">List item three</li>
+          <li style="margin: 0.5rem 0; line-height: 1.6;">List item four</li>
+        </ul>
+      </div>
+    </div>
+  `,
+};
+
+const handleInsertSection = (sectionId: string) => {
+  if (!editor.value) return;
+
+  const template = templates[sectionId];
+  if (template) {
+    editor.value
+      .chain()
+      .focus()
+      .createParagraphNear()
+      .insertContent(template)
+      .focus()
+      .run();
+  }
+};
 
 // Node extensions with style support
 const StyledDiv = Node.create({
@@ -157,6 +225,7 @@ const rawMode = ref(false);
 const editor = ref<Editor | null>(null);
 const editorInitialized = ref(false);
 const previewContent = ref("");
+const monacoEditor = ref<MonacoEditor.IStandaloneCodeEditor | null>(null);
 
 // Initialize composables
 const { showToast } = useToast();
@@ -214,6 +283,59 @@ const formatHTML = (html: string): string => {
     .replace(/§§\/EM§§/g, "</em>");
 
   return formattedHTML.replace(/\n{3,}/g, "\n\n").trim();
+};
+
+const editorOptions = {
+  theme: "vs",
+  language: "html",
+  fontSize: 13,
+  lineNumbers: "on",
+  renderWhitespace: "selection",
+  minimap: {
+    enabled: true,
+    scale: 1,
+    showSlider: "mouseover",
+  },
+  scrollBeyondLastLine: false,
+  wordWrap: "on",
+  lineHeight: 20,
+  padding: { top: 16, bottom: 16 },
+  folding: true,
+  foldingHighlight: true,
+  foldingStrategy: "indentation",
+  showFoldingControls: "always",
+  bracketPairColorization: {
+    enabled: true,
+  },
+  autoClosingBrackets: "always",
+  autoClosingQuotes: "always",
+  autoClosingTags: true,
+  formatOnType: true,
+  formatOnPaste: true,
+  autoIndent: "advanced",
+  tabSize: 2,
+  automaticLayout: true,
+  scrollbar: {
+    vertical: "visible",
+    horizontal: "visible",
+    useShadows: false,
+    verticalHasArrows: false,
+    horizontalHasArrows: false,
+    verticalScrollbarSize: 10,
+    horizontalScrollbarSize: 10,
+  },
+  suggest: {
+    snippetsPreventQuickSuggestions: false,
+    showWords: false,
+    showClasses: true,
+    showTags: true,
+    showAttributes: true,
+  },
+  quickSuggestions: {
+    other: true,
+    comments: false,
+    strings: true,
+  },
 };
 
 const CustomDocument = Document.extend({
@@ -322,13 +444,11 @@ onMounted(() => {
 });
 
 // Handle raw content changes
-const handleRawContentChange = (event: Event) => {
-  const target = event.target as HTMLTextAreaElement;
-  localContent.value = target.value;
-  previewContent.value = target.value;
-  emit("update:content", target.value);
+const handleRawContentChange = (value: string) => {
+  localContent.value = value;
+  previewContent.value = value;
+  emit("update:content", value);
 };
-
 // Watch raw mode changes
 watch(rawMode, (newValue) => {
   if (editor.value) {
@@ -371,6 +491,25 @@ watch(
   { deep: true }
 );
 
+watch(rawMode, (newValue) => {
+  if (editor.value) {
+    if (!newValue) {
+      // When switching from raw mode back to normal mode
+      editor.value.commands.setContent(localContent.value, false, {
+        preserveWhitespace: "full",
+      });
+      previewContent.value = localContent.value;
+    } else {
+      // When switching to raw mode, ensure Monaco editor gets latest content
+      nextTick(() => {
+        if (monacoEditor.value) {
+          monacoEditor.value.setValue(localContent.value);
+        }
+      });
+    }
+  }
+});
+
 const hasChanges = computed(() => {
   return localContent.value !== originalContent.value;
 });
@@ -411,6 +550,9 @@ const saveToDisk = async () => {
 onBeforeUnmount(() => {
   if (editor.value) {
     editor.value.destroy();
+  }
+  if (monacoEditor.value) {
+    monacoEditor.value.dispose();
   }
 });
 </script>
@@ -545,20 +687,10 @@ onBeforeUnmount(() => {
               >
                 List
               </button>
-              <button
-                @click="
-                  editor
-                    .chain()
-                    .focus()
-                    .insertContent({
-                      type: 'colorWheel',
-                    })
-                    .run()
-                "
-                class="toolbar-button"
-              >
-                Add Color Wheel
-              </button>
+              <AddContentDialog
+                :onInsertComponent="handleInsertComponent"
+                :onInsertSection="handleInsertSection"
+              />
             </div>
             <editor-content
               v-if="editorInitialized"
@@ -570,12 +702,13 @@ onBeforeUnmount(() => {
 
           <!-- Raw View -->
           <div v-else-if="rawMode" class="raw-content-wrapper">
-            <textarea
+            <MonacoEditor
               v-model="localContent"
-              class="raw-content"
-              spellcheck="false"
-              @input="handleRawContentChange"
-            ></textarea>
+              class="monaco-editor"
+              :options="editorOptions"
+              @change="handleRawContentChange"
+              @mount="(editor) => (monacoEditor = editor)"
+            />
           </div>
 
           <!-- Preview View -->
@@ -812,33 +945,9 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
-.raw-content {
-  flex: 1;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #d4d4d4;
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin: 0;
-  tab-size: 2;
+.monaco-editor {
   width: 100%;
   height: 100%;
-  background: transparent;
-  border: none;
-  padding: 1rem;
-  resize: none;
-  outline: none;
-  caret-color: #fff;
-  overflow: auto;
-}
-
-.raw-content:focus {
-  outline: none;
-}
-
-.raw-content::selection {
-  background: rgba(255, 255, 255, 0.1);
 }
 
 .prose-editor h1 {

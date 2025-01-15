@@ -1,5 +1,10 @@
 {
   "buildCommand": "nuxt build",
   "devCommand": "nuxt dev",
-  "framework": "nuxtjs"
+  "framework": "nuxtjs",
+  "functions": {
+    "api/**": {
+      "runtime": "nodejs18.x"
+    }
+  }
 }

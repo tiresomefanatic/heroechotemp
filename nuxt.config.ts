@@ -5,6 +5,7 @@ export default defineNuxtConfig({
     "@nuxt/content", // Handles markdown content
     "@nuxt/ui", // Provides UI components
     "@nuxtjs/tailwindcss", // CSS framework
+    "nuxt-monaco-editor", // Code editor
   ],
 
   // Components configuration
@@ -84,6 +85,15 @@ export default defineNuxtConfig({
       siteUrl: process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}`
         : process.env.NUXT_PUBLIC_SITE_URL || "http://localhost:3000",
+    },
+  },
+
+  monacoEditor: {
+    // These are default values:
+    locale: "en",
+    componentName: {
+      codeEditor: "MonacoEditor",
+      diffEditor: "MonacoDiffEditor",
     },
   },
 

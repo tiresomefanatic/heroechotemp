@@ -570,5 +570,6 @@ export const useGithub = () => {
     fetchBranches,
     createBranch,
     switchBranch,
+    createNewPullRequest,
   };
 };
