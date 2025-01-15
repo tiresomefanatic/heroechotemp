@@ -4,7 +4,7 @@
   "framework": "nuxtjs",
   "functions": {
     "api/**": {
-      "runtime": "nodejs18.x"
+      "runtime": "node18.x"
     }
   }
 }

@@ -4,7 +4,6 @@ export default defineNuxtConfig({
   modules: [
     "@nuxt/content", // Handles markdown content
     "@nuxt/ui", // Provides UI components
-    "@nuxtjs/tailwindcss", // CSS framework
     "nuxt-monaco-editor", // Code editor
   ],
 
