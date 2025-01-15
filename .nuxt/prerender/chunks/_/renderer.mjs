@@ -5,9 +5,28 @@ import { joinURL, withoutTrailingSlash } from 'file:///Users/suprateek/Desktop/h
 import { renderToString } from 'file:///Users/suprateek/Desktop/hero-echo/node_modules/vue/server-renderer/index.mjs';
 import { propsToString, renderSSRHead } from 'file:///Users/suprateek/Desktop/hero-echo/node_modules/@unhead/ssr/dist/index.mjs';
 import { d as defineRenderHandler, b as buildAssetsURL, p as publicAssetsURL, a as useStorage, g as getRouteRules, u as useRuntimeConfig, c as useNitroApp } from '../nitro/nitro.mjs';
-import { createServerHead as createServerHead$1, getActiveHead, CapoPlugin } from 'file:///Users/suprateek/Desktop/hero-echo/node_modules/unhead/dist/index.mjs';
-import { version, unref, inject } from 'file:///Users/suprateek/Desktop/hero-echo/node_modules/vue/index.mjs';
+import { createServerHead as createServerHead$1, CapoPlugin } from 'file:///Users/suprateek/Desktop/hero-echo/node_modules/unhead/dist/index.mjs';
+import { version, unref } from 'file:///Users/suprateek/Desktop/hero-echo/node_modules/vue/index.mjs';
 import { defineHeadPlugin } from 'file:///Users/suprateek/Desktop/hero-echo/node_modules/@unhead/shared/dist/index.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/destr/dist/index.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/hookable/dist/index.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/ofetch/dist/node.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/unenv/runtime/fetch/index.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/klona/dist/index.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/defu/dist/defu.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/scule/dist/index.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/unstorage/dist/index.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/unstorage/drivers/fs.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/unstorage/drivers/fs-lite.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/unstorage/drivers/lru-cache.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/radix3/dist/index.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/unctx/dist/index.mjs';
+import 'node:fs';
+import 'node:url';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/pathe/dist/index.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/@iconify/utils/lib/index.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/ohash/dist/index.mjs';
+import 'file:///Users/suprateek/Desktop/hero-echo/node_modules/unenv/runtime/npm/consola.mjs';
 
 const Vue3 = version[0] === "3";
 
@@ -68,21 +87,6 @@ function createServerHead(options = {}) {
   return head;
 }
 
-const _global = typeof globalThis !== "undefined" ? globalThis : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
-const globalKey = "__unhead_injection_handler__";
-function setHeadInjectionHandler(handler) {
-  _global[globalKey] = handler;
-}
-function injectHead() {
-  if (globalKey in _global) {
-    return _global[globalKey]();
-  }
-  const head = inject(headSymbol);
-  if (!head && "prerender" !== "production")
-    console.warn("Unhead is missing Vue context, falling back to shared context. This may have unexpected results.");
-  return head || getActiveHead();
-}
-
 const unheadPlugins = true ? [CapoPlugin({ track: true })] : [];
 
 const renderSSRHeadOptions = {"omitLineBreaks":false};
@@ -110,7 +114,7 @@ const getEntryIds = () => getClientManifest().then((r) => Object.values(r).filte
     r2._globalCSS
   )
 ).map((r2) => r2.src));
-const getServerEntry = () => import('../build/server.mjs').then(function (n) { return n.s; }).then((r) => r.default || r);
+const getServerEntry = () => import('../build/server.mjs').then((r) => r.default || r);
 const getSSRStyles = lazyCachedFunction(() => import('../build/styles.mjs').then((r) => r.default || r));
 const getSSRRenderer = lazyCachedFunction(async () => {
   const manifest = await getClientManifest();
@@ -421,10 +425,5 @@ function splitPayload(ssrContext) {
   };
 }
 
-const renderer$1 = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  default: renderer
-});
-
-export { renderer$1 as a, injectHead as i, resolveUnrefHeadInput as r, setHeadInjectionHandler as s };
+export { renderer as default };
 //# sourceMappingURL=renderer.mjs.map

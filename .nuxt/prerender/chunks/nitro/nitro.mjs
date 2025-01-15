@@ -530,7 +530,7 @@ function _expandFromEnv(value) {
 const _inlineRuntimeConfig = {
   "app": {
     "baseURL": "/",
-    "buildId": "8cf6ffa9-7f23-4e6a-b89b-13a202709900",
+    "buildId": "86b17416-a446-471c-9dfe-7f1f696e8876",
     "buildAssetsDir": "/_nuxt/",
     "cdnURL": ""
   },
@@ -604,7 +604,7 @@ const _inlineRuntimeConfig = {
     "content": {
       "locales": [],
       "defaultLocale": "",
-      "integrity": 1736944378162,
+      "integrity": 1736945847840,
       "experimental": {
         "stripQueryParameters": false,
         "advanceQuery": false,
@@ -1712,7 +1712,7 @@ const _lazy_puaK93 = () => import('../routes/api/auth/token.post.mjs');
 const _lazy_uJuhfu = () => import('../routes/api/raw-content.get.mjs');
 const _lazy_DVnWKP = () => import('../routes/api/raw-content.post.mjs');
 const _lazy_unnN8z = () => import('../routes/api/raw-content.mjs');
-const _lazy_dCUbUO = () => import('../_/renderer.mjs').then(function (n) { return n.a; });
+const _lazy_dCUbUO = () => import('../_/renderer.mjs');
 
 const handlers = [
   { route: '', handler: _KsxFZG, lazy: false, middleware: true, method: undefined },
@@ -1728,7 +1728,7 @@ const handlers = [
   { route: '/api/_content/query/:qid/**:params', handler: _S1cjMb, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/query/:qid', handler: _S1cjMb, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/query', handler: _S1cjMb, lazy: false, middleware: false, method: "get" },
-  { route: '/api/_content/cache.1736944378162.json', handler: _C3POLs, lazy: false, middleware: false, method: "get" },
+  { route: '/api/_content/cache.1736945847840.json', handler: _C3POLs, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/navigation/:qid/**:params', handler: _aCmWfG, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/navigation/:qid', handler: _aCmWfG, lazy: false, middleware: false, method: "get" },
   { route: '/api/_content/navigation', handler: _aCmWfG, lazy: false, middleware: false, method: "get" },

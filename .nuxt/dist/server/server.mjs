@@ -1,13 +1,12 @@
 var _a;
-import { effectScope, shallowReactive, reactive, getCurrentScope, hasInjectionContext, getCurrentInstance, inject, toRef, h, shallowRef, isReadonly, isRef, isShallow, isReactive, toRaw, defineAsyncComponent, ref, computed, defineComponent, unref, provide, Suspense, nextTick, mergeProps, Transition, watch, Fragment, resolveComponent, withCtx, createTextVNode, toDisplayString, openBlock, createBlock, createVNode, createCommentVNode, useSSRContext, onErrorCaptured, onServerPrefetch, resolveDynamicComponent, createApp } from "vue";
+import { effectScope, shallowReactive, reactive, getCurrentScope, hasInjectionContext, getCurrentInstance, inject, toRef, version, unref, ref, watchEffect, watch, h, shallowRef, isReadonly, isRef, isShallow, isReactive, toRaw, defineAsyncComponent, computed, defineComponent, provide, Suspense, nextTick, mergeProps, Transition, Fragment, resolveComponent, withCtx, createTextVNode, toDisplayString, openBlock, createBlock, createVNode, createCommentVNode, useSSRContext, onErrorCaptured, onServerPrefetch, resolveDynamicComponent, createApp } from "vue";
 import { $fetch as $fetch$1 } from "ofetch";
 import { baseURL } from "#internal/nuxt/paths";
 import { createHooks } from "hookable";
 import { getContext } from "unctx";
-import { sanitizeStatusCode, createError as createError$1, appendHeader } from "h3";
-import { setHeadInjectionHandler, useHead } from "@unhead/vue";
-import { composableNames } from "@unhead/shared";
-import { CapoPlugin } from "unhead";
+import { sanitizeStatusCode, createError as createError$1 } from "h3";
+import { getActiveHead, CapoPlugin } from "unhead";
+import { defineHeadPlugin, composableNames } from "@unhead/shared";
 import { START_LOCATION, createMemoryHistory, createRouter as createRouter$1, useRoute as useRoute$1, RouterView } from "vue-router";
 import { toRouteMatcher, createRouter } from "radix3";
 import { defu, defuFn, createDefu } from "defu";
@@ -365,6 +364,78 @@ const createError = (error) => {
   });
   return nuxtError;
 };
+version[0] === "3";
+function resolveUnref(r) {
+  return typeof r === "function" ? r() : unref(r);
+}
+function resolveUnrefHeadInput(ref2) {
+  if (ref2 instanceof Promise || ref2 instanceof Date || ref2 instanceof RegExp)
+    return ref2;
+  const root = resolveUnref(ref2);
+  if (!ref2 || !root)
+    return root;
+  if (Array.isArray(root))
+    return root.map((r) => resolveUnrefHeadInput(r));
+  if (typeof root === "object") {
+    const resolved = {};
+    for (const k in root) {
+      if (!Object.prototype.hasOwnProperty.call(root, k)) {
+        continue;
+      }
+      if (k === "titleTemplate" || k[0] === "o" && k[1] === "n") {
+        resolved[k] = unref(root[k]);
+        continue;
+      }
+      resolved[k] = resolveUnrefHeadInput(root[k]);
+    }
+    return resolved;
+  }
+  return root;
+}
+defineHeadPlugin({
+  hooks: {
+    "entries:resolve": (ctx) => {
+      for (const entry2 of ctx.entries)
+        entry2.resolvedInput = resolveUnrefHeadInput(entry2.input);
+    }
+  }
+});
+const headSymbol = "usehead";
+const _global = typeof globalThis !== "undefined" ? globalThis : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
+const globalKey$1 = "__unhead_injection_handler__";
+function setHeadInjectionHandler(handler) {
+  _global[globalKey$1] = handler;
+}
+function injectHead() {
+  if (globalKey$1 in _global) {
+    return _global[globalKey$1]();
+  }
+  const head = inject(headSymbol);
+  if (!head && process.env.NODE_ENV !== "production")
+    console.warn("Unhead is missing Vue context, falling back to shared context. This may have unexpected results.");
+  return head || getActiveHead();
+}
+function useHead(input, options = {}) {
+  const head = options.head || injectHead();
+  if (head) {
+    if (!head.ssr)
+      return clientUseHead(head, input, options);
+    return head.push(input, options);
+  }
+}
+function clientUseHead(head, input, options = {}) {
+  const deactivated = ref(false);
+  const resolvedInput = ref({});
+  watchEffect(() => {
+    resolvedInput.value = deactivated.value ? {} : resolveUnrefHeadInput(input);
+  });
+  const entry2 = head.push(resolvedInput.value, options);
+  watch(resolvedInput, (e) => {
+    entry2.patch(e);
+  });
+  getCurrentInstance();
+  return entry2;
+}
 const coreComposableNames = [
   "injectHead"
 ];
@@ -520,7 +591,7 @@ const generateRouteKey$1 = (routeProps, override) => {
 const wrapInKeepAlive = (props, children) => {
   return { default: () => children };
 };
-function toArray$1(value) {
+function toArray(value) {
   return Array.isArray(value) ? value : [value];
 }
 async function getRouteRules(arg) {
@@ -539,17 +610,17 @@ const _routes = [
   {
     name: "slug",
     path: "/:slug(.*)*",
-    component: () => import("./_nuxt/_...slug_-VX02G0Gv.js")
+    component: () => import("./_nuxt/_...slug_-DlXfcXFJ.js")
   },
   {
     name: "auth-callback",
     path: "/auth/callback",
-    component: () => import("./_nuxt/callback-LWn6x4dn.js")
+    component: () => import("./_nuxt/callback-B8fVaAtB.js")
   },
   {
     name: "login",
     path: "/login",
-    component: () => import("./_nuxt/login-DCJG1R5z.js")
+    component: () => import("./_nuxt/login-Dib2jbo6.js")
   }
 ];
 const _wrapIf = (component, props, slots) => {
@@ -633,7 +704,6 @@ const configRouterOptions = {
   hashMode: false,
   scrollBehaviorType: "auto"
 };
-const hashMode = false;
 const routerOptions = {
   ...configRouterOptions,
   ...routerOptions0
@@ -686,7 +756,7 @@ const plugin = /* @__PURE__ */ defineNuxtPlugin({
     let __temp, __restore;
     let routerBase = (/* @__PURE__ */ useRuntimeConfig()).app.baseURL;
     const history = ((_a2 = routerOptions.history) == null ? void 0 : _a2.call(routerOptions, routerBase)) ?? createMemoryHistory(routerBase);
-    const routes2 = routerOptions.routes ? ([__temp, __restore] = executeAsync(() => routerOptions.routes(_routes)), __temp = await __temp, __restore(), __temp) ?? _routes : _routes;
+    const routes = routerOptions.routes ? ([__temp, __restore] = executeAsync(() => routerOptions.routes(_routes)), __temp = await __temp, __restore(), __temp) ?? _routes : _routes;
     let startPosition;
     const router = createRouter$1({
       ...routerOptions,
@@ -707,9 +777,9 @@ const plugin = /* @__PURE__ */ defineNuxtPlugin({
         }
       },
       history,
-      routes: routes2
+      routes
     });
-    handleHotUpdate(router, routerOptions.routes ? routerOptions.routes : (routes22) => routes22);
+    handleHotUpdate(router, routerOptions.routes ? routerOptions.routes : (routes2) => routes2);
     nuxtApp.vueApp.use(router);
     const previousRoute = shallowRef(router.currentRoute.value);
     router.afterEach((_to, from) => {
@@ -790,7 +860,7 @@ const plugin = /* @__PURE__ */ defineNuxtPlugin({
           if (!componentMiddleware) {
             continue;
           }
-          for (const entry2 of toArray$1(componentMiddleware)) {
+          for (const entry2 of toArray(componentMiddleware)) {
             middlewareEntries.add(entry2);
           }
         }
@@ -889,58 +959,58 @@ const revive_payload_server_eJ33V7gbc6 = /* @__PURE__ */ defineNuxtPlugin({
 const LazyColorWheel = defineAsyncComponent(() => import("./_nuxt/ColorWheel-CIeR78Y1.js").then((r) => r["default"] || r.default || r));
 const LazyNavBar = defineAsyncComponent(() => import("./_nuxt/NavBar-CIW8Mr7Z.js").then((r) => r["default"] || r.default || r));
 const LazyTestComponent = defineAsyncComponent(() => import("./_nuxt/Test-component-CC8Ouwe4.js").then((r) => r["default"] || r.default || r));
-const LazyAddContentDialog = defineAsyncComponent(() => import("./_nuxt/AddContentDialog-CEHj1nx2.js").then((r) => r["default"] || r.default || r));
-const LazyCollaborationSidebar = defineAsyncComponent(() => import("./_nuxt/CollaborationSidebar-CQ7dIPYH.js").then((r) => r["default"] || r.default || r));
-const LazyColorWheelNode = defineAsyncComponent(() => import("./_nuxt/ColorWheelNode--CmoqDyR.js").then((r) => r["default"] || r.default || r));
+const LazyAddContentDialog = defineAsyncComponent(() => import("./_nuxt/AddContentDialog-_ja4enoB.js").then((r) => r["default"] || r.default || r));
+const LazyCollaborationSidebar = defineAsyncComponent(() => import("./_nuxt/CollaborationSidebar-DFU81baI.js").then((r) => r["default"] || r.default || r));
+const LazyColorWheelNode = defineAsyncComponent(() => import("./_nuxt/ColorWheelNode-LlNQdGPh.js").then((r) => r["default"] || r.default || r));
 const LazyContentWrapper = defineAsyncComponent(() => import("./_nuxt/ContentWrapper-DBH8pZrs.js").then((r) => r["default"] || r.default || r));
-const LazyCreatePullRequest = defineAsyncComponent(() => import("./_nuxt/CreatePullRequest-BD08MB19.js").then((r) => r["default"] || r.default || r));
-const LazyDesignSidebar = defineAsyncComponent(() => import("./_nuxt/DesignSidebar-DbHZn4FK.js").then((r) => r["default"] || r.default || r));
-const LazyGithubLogin = defineAsyncComponent(() => import("./_nuxt/GithubLogin-B0aLXjpA.js").then((r) => r["default"] || r.default || r));
+const LazyCreatePullRequest = defineAsyncComponent(() => import("./_nuxt/CreatePullRequest-Df8cfafm.js").then((r) => r["default"] || r.default || r));
+const LazyDesignSidebar = defineAsyncComponent(() => import("./_nuxt/DesignSidebar-B5SORwBy.js").then((r) => r["default"] || r.default || r));
+const LazyGithubLogin = defineAsyncComponent(() => import("./_nuxt/GithubLogin-CTYmJgZH.js").then((r) => r["default"] || r.default || r));
 const LazyHeader = defineAsyncComponent(() => Promise.resolve().then(function() {
   return Header$1;
 }).then((r) => r["default"] || r.default || r));
-const LazyMarkdownRenderer = defineAsyncComponent(() => import("./_nuxt/MarkdownRenderer-iMk6Yerh.js").then((r) => r["default"] || r.default || r));
-const LazyTiptapEditor = defineAsyncComponent(() => import("./_nuxt/TiptapEditor-Bqi_B-Fd.js").then((r) => r["default"] || r.default || r));
-const LazyToast = defineAsyncComponent(() => import("./_nuxt/Toast-BITm0HQD.js").then((r) => r["default"] || r.default || r));
-const LazyEditorBaseNodeComponent = defineAsyncComponent(() => import("./_nuxt/BaseNodeComponent-C27MGRfg.js").then((r) => r["default"] || r.default || r));
-const LazyEditorColorWheelNode = defineAsyncComponent(() => import("./_nuxt/color-wheelNode-BvaegrmS.js").then((r) => r["default"] || r.default || r));
-const LazyContentDoc = defineAsyncComponent(() => import("./_nuxt/ContentDoc-Is_5roMn.js").then((r) => r["default"] || r.default || r));
-const LazyContentList = defineAsyncComponent(() => import("./_nuxt/ContentList-DZ1r7gpe.js").then((r) => r["default"] || r.default || r));
-const LazyContentNavigation = defineAsyncComponent(() => import("./_nuxt/ContentNavigation-DrXEqagn.js").then((r) => r["default"] || r.default || r));
-const LazyContentQuery = defineAsyncComponent(() => import("./_nuxt/ContentQuery-CskZ16-f.js").then((r) => r["default"] || r.default || r));
-const LazyContentRenderer = defineAsyncComponent(() => import("./_nuxt/ContentRenderer-D9s0Lb77.js").then((r) => r["default"] || r.default || r));
-const LazyContentRendererMarkdown = defineAsyncComponent(() => import("./_nuxt/ContentRendererMarkdown-4O677W8d.js").then((r) => r["default"] || r.default || r));
+const LazyMarkdownRenderer = defineAsyncComponent(() => import("./_nuxt/MarkdownRenderer-DU4Z-74Z.js").then((r) => r["default"] || r.default || r));
+const LazyTiptapEditor = defineAsyncComponent(() => import("./_nuxt/TiptapEditor-CgYO5oW2.js").then((r) => r["default"] || r.default || r));
+const LazyToast = defineAsyncComponent(() => import("./_nuxt/Toast-E4TbopQZ.js").then((r) => r["default"] || r.default || r));
+const LazyEditorBaseNodeComponent = defineAsyncComponent(() => import("./_nuxt/BaseNodeComponent-B13FR4uU.js").then((r) => r["default"] || r.default || r));
+const LazyEditorColorWheelNode = defineAsyncComponent(() => import("./_nuxt/color-wheelNode-Cr516IK3.js").then((r) => r["default"] || r.default || r));
+const LazyContentDoc = defineAsyncComponent(() => import("./_nuxt/ContentDoc-CPcHtbYx.js").then((r) => r["default"] || r.default || r));
+const LazyContentList = defineAsyncComponent(() => import("./_nuxt/ContentList-DeHxxGda.js").then((r) => r["default"] || r.default || r));
+const LazyContentNavigation = defineAsyncComponent(() => import("./_nuxt/ContentNavigation-B25eq4qz.js").then((r) => r["default"] || r.default || r));
+const LazyContentQuery = defineAsyncComponent(() => import("./_nuxt/ContentQuery-CdF1Ie-4.js").then((r) => r["default"] || r.default || r));
+const LazyContentRenderer = defineAsyncComponent(() => import("./_nuxt/ContentRenderer-DPC6kd8b.js").then((r) => r["default"] || r.default || r));
+const LazyContentRendererMarkdown = defineAsyncComponent(() => import("./_nuxt/ContentRendererMarkdown-C56DuM-P.js").then((r) => r["default"] || r.default || r));
 const LazyContentSlot = defineAsyncComponent(() => import("./_nuxt/ContentSlot-BcmQm8hp.js").then((r) => r["default"] || r.default || r));
 const LazyDocumentDrivenEmpty = defineAsyncComponent(() => import("./_nuxt/DocumentDrivenEmpty-CVfz7tly.js").then((r) => r["default"] || r.default || r));
 const LazyDocumentDrivenNotFound = defineAsyncComponent(() => import("./_nuxt/DocumentDrivenNotFound-4pTrsASA.js").then((r) => r["default"] || r.default || r));
 const LazyMarkdown = defineAsyncComponent(() => import("./_nuxt/Markdown-CZiW761y.js").then((r) => r["default"] || r.default || r));
 const LazyProseCode = defineAsyncComponent(() => import("./_nuxt/ProseCode-DKypvgyU.js").then((r) => r["default"] || r.default || r));
-const LazyProseCodeInline = defineAsyncComponent(() => import("./_nuxt/ProseCodeInline-Dni5I6xN.js").then((r) => r["default"] || r.default || r));
+const LazyProseCodeInline = defineAsyncComponent(() => import("./_nuxt/ProseCodeInline-BfSqJ7Xp.js").then((r) => r["default"] || r.default || r));
 const LazyProsePre = defineAsyncComponent(() => import("./_nuxt/ProsePre-ClSanD6H.js").then((r) => r["default"] || r.default || r));
-const LazyProseA = defineAsyncComponent(() => import("./_nuxt/ProseA-BURLeqIz.js").then((r) => r["default"] || r.default || r));
-const LazyProseBlockquote = defineAsyncComponent(() => import("./_nuxt/ProseBlockquote-C_46maSR.js").then((r) => r["default"] || r.default || r));
-const LazyProseEm = defineAsyncComponent(() => import("./_nuxt/ProseEm-C44q3H_-.js").then((r) => r["default"] || r.default || r));
-const LazyProseH1 = defineAsyncComponent(() => import("./_nuxt/ProseH1-o-wo_yzb.js").then((r) => r["default"] || r.default || r));
-const LazyProseH2 = defineAsyncComponent(() => import("./_nuxt/ProseH2-BEHRy8A5.js").then((r) => r["default"] || r.default || r));
-const LazyProseH3 = defineAsyncComponent(() => import("./_nuxt/ProseH3-FFH0NHN3.js").then((r) => r["default"] || r.default || r));
-const LazyProseH4 = defineAsyncComponent(() => import("./_nuxt/ProseH4-CSHubr0f.js").then((r) => r["default"] || r.default || r));
-const LazyProseH5 = defineAsyncComponent(() => import("./_nuxt/ProseH5-B0c3oS8r.js").then((r) => r["default"] || r.default || r));
-const LazyProseH6 = defineAsyncComponent(() => import("./_nuxt/ProseH6-Cm_oACT7.js").then((r) => r["default"] || r.default || r));
-const LazyProseHr = defineAsyncComponent(() => import("./_nuxt/ProseHr-BVf5e2GI.js").then((r) => r["default"] || r.default || r));
-const LazyProseImg = defineAsyncComponent(() => import("./_nuxt/ProseImg-ChTa_IRA.js").then((r) => r["default"] || r.default || r));
-const LazyProseLi = defineAsyncComponent(() => import("./_nuxt/ProseLi-uanhbjdk.js").then((r) => r["default"] || r.default || r));
-const LazyProseOl = defineAsyncComponent(() => import("./_nuxt/ProseOl-SiQ0T0tP.js").then((r) => r["default"] || r.default || r));
-const LazyProseP = defineAsyncComponent(() => import("./_nuxt/ProseP-CFqunKVl.js").then((r) => r["default"] || r.default || r));
+const LazyProseA = defineAsyncComponent(() => import("./_nuxt/ProseA-CZWyd9hV.js").then((r) => r["default"] || r.default || r));
+const LazyProseBlockquote = defineAsyncComponent(() => import("./_nuxt/ProseBlockquote-DIe6GYmN.js").then((r) => r["default"] || r.default || r));
+const LazyProseEm = defineAsyncComponent(() => import("./_nuxt/ProseEm-DowoIRfD.js").then((r) => r["default"] || r.default || r));
+const LazyProseH1 = defineAsyncComponent(() => import("./_nuxt/ProseH1-CytTQDiW.js").then((r) => r["default"] || r.default || r));
+const LazyProseH2 = defineAsyncComponent(() => import("./_nuxt/ProseH2-CL3TA4Vk.js").then((r) => r["default"] || r.default || r));
+const LazyProseH3 = defineAsyncComponent(() => import("./_nuxt/ProseH3-CpfJYi9d.js").then((r) => r["default"] || r.default || r));
+const LazyProseH4 = defineAsyncComponent(() => import("./_nuxt/ProseH4-DNdDQxDC.js").then((r) => r["default"] || r.default || r));
+const LazyProseH5 = defineAsyncComponent(() => import("./_nuxt/ProseH5-B-ox1ZDR.js").then((r) => r["default"] || r.default || r));
+const LazyProseH6 = defineAsyncComponent(() => import("./_nuxt/ProseH6-BonSh464.js").then((r) => r["default"] || r.default || r));
+const LazyProseHr = defineAsyncComponent(() => import("./_nuxt/ProseHr-BTalcar1.js").then((r) => r["default"] || r.default || r));
+const LazyProseImg = defineAsyncComponent(() => import("./_nuxt/ProseImg-B8K0k-cP.js").then((r) => r["default"] || r.default || r));
+const LazyProseLi = defineAsyncComponent(() => import("./_nuxt/ProseLi-DGYhqoVL.js").then((r) => r["default"] || r.default || r));
+const LazyProseOl = defineAsyncComponent(() => import("./_nuxt/ProseOl-BrxnGlfW.js").then((r) => r["default"] || r.default || r));
+const LazyProseP = defineAsyncComponent(() => import("./_nuxt/ProseP-CP81GLxc.js").then((r) => r["default"] || r.default || r));
 const LazyProseScript = defineAsyncComponent(() => import("./_nuxt/ProseScript-D0R07iM6.js").then((r) => r["default"] || r.default || r));
-const LazyProseStrong = defineAsyncComponent(() => import("./_nuxt/ProseStrong-B4UdXK7F.js").then((r) => r["default"] || r.default || r));
-const LazyProseTable = defineAsyncComponent(() => import("./_nuxt/ProseTable-DgLYlv3-.js").then((r) => r["default"] || r.default || r));
-const LazyProseTbody = defineAsyncComponent(() => import("./_nuxt/ProseTbody-DsZ7jnMR.js").then((r) => r["default"] || r.default || r));
-const LazyProseTd = defineAsyncComponent(() => import("./_nuxt/ProseTd-UIHSW4Ad.js").then((r) => r["default"] || r.default || r));
-const LazyProseTh = defineAsyncComponent(() => import("./_nuxt/ProseTh-B6nigF1x.js").then((r) => r["default"] || r.default || r));
-const LazyProseThead = defineAsyncComponent(() => import("./_nuxt/ProseThead-DMNf4WUn.js").then((r) => r["default"] || r.default || r));
-const LazyProseTr = defineAsyncComponent(() => import("./_nuxt/ProseTr-CqEa0i4M.js").then((r) => r["default"] || r.default || r));
-const LazyProseUl = defineAsyncComponent(() => import("./_nuxt/ProseUl-B0JkvtNS.js").then((r) => r["default"] || r.default || r));
-const LazyIcon = defineAsyncComponent(() => import("./_nuxt/index-DXWTuRZh.js").then((r) => r["default"] || r.default || r));
+const LazyProseStrong = defineAsyncComponent(() => import("./_nuxt/ProseStrong-DLvLAFlW.js").then((r) => r["default"] || r.default || r));
+const LazyProseTable = defineAsyncComponent(() => import("./_nuxt/ProseTable-dGUOnjGx.js").then((r) => r["default"] || r.default || r));
+const LazyProseTbody = defineAsyncComponent(() => import("./_nuxt/ProseTbody-CHsZASkf.js").then((r) => r["default"] || r.default || r));
+const LazyProseTd = defineAsyncComponent(() => import("./_nuxt/ProseTd-EaGSC8V_.js").then((r) => r["default"] || r.default || r));
+const LazyProseTh = defineAsyncComponent(() => import("./_nuxt/ProseTh-CfPlqeNc.js").then((r) => r["default"] || r.default || r));
+const LazyProseThead = defineAsyncComponent(() => import("./_nuxt/ProseThead-CgzT7QHq.js").then((r) => r["default"] || r.default || r));
+const LazyProseTr = defineAsyncComponent(() => import("./_nuxt/ProseTr-Cb9JK_YK.js").then((r) => r["default"] || r.default || r));
+const LazyProseUl = defineAsyncComponent(() => import("./_nuxt/ProseUl-UvD_NsaD.js").then((r) => r["default"] || r.default || r));
+const LazyIcon = defineAsyncComponent(() => import("./_nuxt/index-S9JHhHZp.js").then((r) => r["default"] || r.default || r));
 const lazyGlobalComponents = [
   ["ColorWheel", LazyColorWheel],
   ["NavBar", LazyNavBar],
@@ -1468,9 +1538,6 @@ ${Object.entries(gray || config.cool).map(([key, value]) => `--color-gray-${key}
   useHead(headData);
 });
 const preference = "system";
-function toArray(value) {
-  return Array.isArray(value) ? value : [value];
-}
 const useStateKeyPrefix = "$s";
 function useState(...args) {
   const autoKey = typeof args[args.length - 1] === "string" ? args.pop() : void 0;
@@ -1496,17 +1563,6 @@ function useState(...args) {
     state.value = initialValue;
   }
   return state;
-}
-function useRequestEvent(nuxtApp = useNuxtApp()) {
-  var _a2;
-  return (_a2 = nuxtApp.ssrContext) == null ? void 0 : _a2.event;
-}
-function prerenderRoutes(path) {
-  if (!import.meta.prerender) {
-    return;
-  }
-  const paths = toArray(path);
-  appendHeader(useRequestEvent(), "x-nitro-prerender", paths.map((p) => encodeURIComponent(p)).join(", "));
 }
 const plugin_server_ano7jnMEqi = /* @__PURE__ */ defineNuxtPlugin((nuxtApp) => {
   var _a2;
@@ -1571,46 +1627,6 @@ const plugin_WLsn00x1qh = /* @__PURE__ */ defineNuxtPlugin({
     }
   }
 });
-let routes;
-const prerender_server_LXx1wM9sKF = /* @__PURE__ */ defineNuxtPlugin(async () => {
-  let __temp, __restore;
-  if (!import.meta.prerender || hashMode) {
-    return;
-  }
-  if (routes && !routes.length) {
-    return;
-  }
-  (/* @__PURE__ */ useRuntimeConfig()).nitro.routeRules;
-  routes || (routes = Array.from(processRoutes(([__temp, __restore] = executeAsync(() => {
-    var _a2;
-    return (_a2 = routerOptions.routes) == null ? void 0 : _a2.call(routerOptions, _routes);
-  }), __temp = await __temp, __restore(), __temp) ?? _routes)));
-  const batch = routes.splice(0, 10);
-  prerenderRoutes(batch);
-});
-const OPTIONAL_PARAM_RE = /^\/?:.*(?:\?|\(\.\*\)\*)$/;
-function shouldPrerender(path) {
-  return true;
-}
-function processRoutes(routes2, currentPath = "/", routesToPrerender = /* @__PURE__ */ new Set()) {
-  var _a2;
-  for (const route of routes2) {
-    if (OPTIONAL_PARAM_RE.test(route.path) && !((_a2 = route.children) == null ? void 0 : _a2.length) && shouldPrerender()) {
-      routesToPrerender.add(currentPath);
-    }
-    if (route.path.includes(":")) {
-      continue;
-    }
-    const fullPath = joinURL(currentPath, route.path);
-    {
-      routesToPrerender.add(fullPath);
-    }
-    if (route.children) {
-      processRoutes(route.children, fullPath, routesToPrerender);
-    }
-  }
-  return routesToPrerender;
-}
 const plugins = [
   unhead_KgADcZ0jPj,
   plugin,
@@ -1620,8 +1636,7 @@ const plugins = [
   modals_oqljskDzoR,
   colors_ETtiVmZNmO,
   plugin_server_ano7jnMEqi,
-  plugin_WLsn00x1qh,
-  prerender_server_LXx1wM9sKF
+  plugin_WLsn00x1qh
 ];
 const layouts = {};
 const LayoutLoader = defineComponent({
@@ -1969,7 +1984,7 @@ const __nuxt_component_2 = defineComponent({
 function _mergeTransitionProps(routeProps) {
   const _props = routeProps.map((prop) => ({
     ...prop,
-    onAfterLeave: prop.onAfterLeave ? toArray$1(prop.onAfterLeave) : void 0
+    onAfterLeave: prop.onAfterLeave ? toArray(prop.onAfterLeave) : void 0
   }));
   return defu(..._props);
 }
@@ -2447,8 +2462,8 @@ const _sfc_main$1 = {
     const statusMessage = _error.statusMessage ?? (is404 ? "Page Not Found" : "Internal Server Error");
     const description = _error.message || _error.toString();
     const stack = void 0;
-    const _Error404 = defineAsyncComponent(() => import("./_nuxt/error-404-Bqa2caeX.js"));
-    const _Error = defineAsyncComponent(() => import("./_nuxt/error-500-T-mKyoIS.js"));
+    const _Error404 = defineAsyncComponent(() => import("./_nuxt/error-404-C_q9EHY4.js"));
+    const _Error = defineAsyncComponent(() => import("./_nuxt/error-500-BaaA6yya.js"));
     const ErrorTemplate = is404 ? _Error404 : _Error;
     return (_ctx, _push, _parent, _attrs) => {
       _push(ssrRenderComponent(unref(ErrorTemplate), mergeProps({ statusCode: unref(statusCode), statusMessage: unref(statusMessage), description: unref(description), stack: unref(stack) }, _attrs), null, _parent));
@@ -2531,20 +2546,20 @@ const entry$1 = (ssrContext) => entry(ssrContext);
 export {
   _export_sfc as _,
   __nuxt_component_0 as a,
-  appConfig as b,
-  useRoute as c,
-  useState as d,
+  useNuxtApp as b,
+  appConfig as c,
+  useRoute as d,
   entry$1 as default,
-  asyncDataDefaults as e,
-  createError as f,
-  useRuntimeConfig as g,
-  useRequestEvent as h,
+  useState as e,
+  asyncDataDefaults as f,
+  createError as g,
+  useRuntimeConfig as h,
   useAppConfig as i,
   get as j,
   useRouter as k,
   mergeConfig as m,
   omit as o,
   twMerge as t,
-  useNuxtApp as u
+  useHead as u
 };
 //# sourceMappingURL=server.mjs.map

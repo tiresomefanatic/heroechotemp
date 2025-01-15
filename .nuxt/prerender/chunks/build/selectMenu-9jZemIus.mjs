@@ -1,5 +1,5 @@
 import { useAttrs, computed, toValue } from 'file:///Users/suprateek/Desktop/hero-echo/node_modules/vue/index.mjs';
-import { h as useAppConfig, m as mergeConfig, i as get, o as omit } from './server.mjs';
+import { i as useAppConfig, m as mergeConfig, j as get, o as omit } from './server.mjs';
 
 const useUI = (key, $ui, $config, $wrapperClass, withAppConfig = false) => {
   const $attrs = useAttrs();
